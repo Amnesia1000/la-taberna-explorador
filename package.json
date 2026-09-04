@@ -2,6 +2,13 @@
   "name": "la-taberna-explorador",
   "version": "0.1.0",
   "private": true,
+  "allowScripts": {
+    "@prisma/client": true,
+    "@prisma/engines": true,
+    "core-js": true,
+    "esbuild": true,
+    "prisma": true
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
