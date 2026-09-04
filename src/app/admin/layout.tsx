@@ -6,14 +6,14 @@ import {
   LayoutDashboard,
   Dices,
   Layers,
+  FileSignature,
   Repeat,
   CalendarCheck,
   Users,
   ExternalLink,
   Menu,
   X,
-  Compass,
-  Scroll,
+  Store,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -35,46 +35,46 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f7f2e7] flex flex-col md:flex-row">
+    <div className="min-h-screen bg-zinc-100 flex flex-col md:flex-row">
       {/* Mobile Top Bar */}
-      <div className="md:hidden border-b border-[#dfcfb2] bg-[#24130a] px-4 h-14 flex items-center justify-between text-[#fef3c7]">
+      <div className="md:hidden border-b border-zinc-300 bg-white px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#b45309] text-white flex items-center justify-center font-tavern text-xs font-bold rounded-sm">
-            <Compass className="w-4 h-4" />
+          <div className="w-7 h-7 bg-zinc-900 text-white flex items-center justify-center font-mono text-xs font-bold">
+            ADM
           </div>
-          <span className="font-tavern text-xs font-bold uppercase tracking-wider text-[#fef3c7]">
-            GREMIO // PANEL DE GESTIÓN
+          <span className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-900">
+            PANEL DE GESTIÓN
           </span>
         </div>
 
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-1.5 border border-[#54321d] text-[#fef3c7] hover:bg-[#381e11] rounded"
+          className="p-1.5 border border-zinc-200 text-zinc-700 hover:bg-zinc-100"
           aria-label="Abrir menú"
         >
           {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
-      {/* Sidebar Navigation - Dark Oak Guild Style */}
+      {/* Sidebar Navigation */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#20120a] border-r border-[#3d2215] flex flex-col justify-between transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:h-screen text-[#fef3c7] ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-zinc-300 flex flex-col justify-between transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:h-screen ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col">
           {/* Header */}
-          <div className="p-5 border-b border-[#3d2215] bg-[#180d07]">
+          <div className="p-5 border-b border-zinc-200">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-gradient-to-b from-[#b45309] to-[#78350f] text-white flex items-center justify-center font-tavern text-sm font-bold rounded-sm shadow-md">
-                <Compass className="w-5 h-5 text-[#fef3c7]" />
+              <div className="w-8 h-8 bg-zinc-900 text-white flex items-center justify-center font-mono text-xs font-bold">
+                T/E
               </div>
               <div>
-                <h2 className="font-tavern text-xs font-bold uppercase tracking-wider text-[#fef3c7]">
-                  LIBRO DEL GREMIO
+                <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-950">
+                  ADMINISTRACIÓN
                 </h2>
-                <span className="text-[10px] text-[#b45309] font-serif tracking-widest block uppercase font-bold">
-                  TABERNA DEL EXPLORADOR
+                <span className="text-[10px] text-zinc-400 font-mono tracking-widest block uppercase">
+                  TABERNA EXPLORADOR
                 </span>
               </div>
             </div>
@@ -82,8 +82,8 @@ export default function AdminLayout({
 
           {/* Navigation Links */}
           <nav className="p-3 space-y-1">
-            <span className="px-3 py-1.5 text-[10px] font-tavern text-[#8a6b52] uppercase tracking-widest block font-bold">
-              Registros & Operaciones
+            <span className="px-3 py-1 text-[10px] font-mono text-zinc-400 uppercase tracking-widest block">
+              Módulos del Sistema
             </span>
 
             {NAV_ITEMS.map((item) => {
@@ -97,13 +97,13 @@ export default function AdminLayout({
                   key={item.href}
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 text-xs font-tavern uppercase tracking-wider border transition-all rounded-sm ${
+                  className={`flex items-center gap-3 px-3 py-2 text-xs font-mono uppercase tracking-wider border transition-all ${
                     isActive
-                      ? "bg-gradient-to-r from-[#b45309] to-[#92400e] text-white border-[#d97706] font-bold shadow-sm"
-                      : "text-[#d1baa5] border-transparent hover:bg-[#2e1a0f] hover:text-[#ffffff]"
+                      ? "bg-zinc-900 text-white border-zinc-900 font-bold"
+                      : "text-zinc-600 border-transparent hover:bg-zinc-100 hover:text-zinc-950"
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? "text-[#fef08a]" : "text-[#b45309]"}`} />
+                  <Icon className="w-4 h-4" />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -112,17 +112,17 @@ export default function AdminLayout({
         </div>
 
         {/* Bottom Utility Link */}
-        <div className="p-4 border-t border-[#3d2215] bg-[#180d07] space-y-2">
+        <div className="p-4 border-t border-zinc-200 space-y-2">
           <Link
             href="/"
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-[#54321d] hover:border-[#b45309] bg-[#29170e] hover:bg-[#381e11] text-[#fef3c7] text-xs font-tavern uppercase tracking-wider transition rounded-sm"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-zinc-300 hover:border-zinc-900 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 text-xs font-mono uppercase tracking-wider transition"
           >
-            <Scroll className="w-3.5 h-3.5 text-[#f59e0b]" />
+            <Store className="w-3.5 h-3.5" />
             <span>Ver Catálogo Público</span>
-            <ExternalLink className="w-3 h-3 text-[#b45309]" />
+            <ExternalLink className="w-3 h-3 text-zinc-400" />
           </Link>
-          <div className="text-[10px] font-serif text-[#8a6b52] text-center uppercase tracking-widest pt-1">
-            Gremio de Taberneros • v1.0
+          <div className="text-[10px] font-mono text-zinc-400 text-center uppercase tracking-widest pt-1">
+            Versión 1.0.0 // Wireframe
           </div>
         </div>
       </aside>

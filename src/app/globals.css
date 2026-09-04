@@ -3,217 +3,120 @@
 @tailwind utilities;
 
 :root {
-  --background: #f7f1e1;
-  --foreground: #23140c;
-  --border: #c8a774;
+  --background: #ffffff;
+  --foreground: #09090b;
+  --border: #e4e4e7;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
 }
 
 body {
   color: var(--foreground);
-  background-color: #1a0f08;
-  min-height: 100vh;
+  background: var(--background);
+  font-feature-settings: "rlig" 1, "calt" 1;
 }
 
-@layer components {
-  /* Handcrafted Medieval Parchment Card */
-  .parchment-folio {
-    background: #fcf8ee;
-    background-image: linear-gradient(180deg, #fdfbf5 0%, #f7f0df 100%);
-    border: 2px solid #8c5828;
-    box-shadow: 
-      inset 0 0 20px rgba(140, 88, 40, 0.12),
-      inset 0 0 3px rgba(66, 36, 12, 0.2),
-      0 6px 18px rgba(44, 23, 10, 0.12);
-    position: relative;
-  }
-
-  .parchment-folio:hover {
-    border-color: #b45309;
-    box-shadow: 
-      inset 0 0 25px rgba(180, 83, 9, 0.16),
-      inset 0 0 4px rgba(66, 36, 12, 0.25),
-      0 10px 28px rgba(44, 23, 10, 0.18);
-  }
-
-  /* Timber / Dark Oak Beam */
-  .wood-beam {
-    background: linear-gradient(180deg, #381e12 0%, #26130a 50%, #1c0d06 100%);
-    border: 2px solid #5a3219;
-    box-shadow: 
-      inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      inset 0 -2px 0 rgba(0, 0, 0, 0.6),
-      0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-
-  /* Medieval Wax Seal Badge */
-  .wax-seal-green {
-    background: radial-gradient(circle at 35% 35%, #2d6a4f 0%, #1b4332 70%, #0d281e 100%);
-    border: 2px solid #52b788;
-    box-shadow: 
-      inset 0 1px 2px rgba(255, 255, 255, 0.3),
-      inset 0 -2px 4px rgba(0, 0, 0, 0.5),
-      0 2px 6px rgba(13, 40, 30, 0.4);
-    color: #e8f5e9;
-  }
-
-  .wax-seal-red {
-    background: radial-gradient(circle at 35% 35%, #991b1b 0%, #7f1d1d 70%, #450a0a 100%);
-    border: 2px solid #f87171;
-    box-shadow: 
-      inset 0 1px 2px rgba(255, 255, 255, 0.3),
-      inset 0 -2px 4px rgba(0, 0, 0, 0.5),
-      0 2px 6px rgba(69, 10, 10, 0.4);
-    color: #fee2e2;
-  }
-
-  /* Tavern Input with carved parchment border */
-  .tavern-input {
-    width: 100%;
-    border: 2px solid #ad8551;
-    background: #fffdf8;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-    font-size: 0.875rem;
-    color: #2b170c;
-    outline: none;
-    box-shadow: inset 0 2px 4px rgba(66, 36, 12, 0.08);
-    transition: all 0.15s ease-in-out;
-  }
-
-  .tavern-input:focus {
-    border-color: #854d0e;
-    box-shadow: 
-      inset 0 2px 4px rgba(66, 36, 12, 0.08),
-      0 0 0 2px rgba(202, 138, 4, 0.3);
-  }
-
-  /* Gilded Tavern Action Button */
-  .tavern-btn-medieval {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border: 2px solid #5a3219;
-    border-top-color: #a16207;
-    background: linear-gradient(180deg, #3d2112 0%, #291409 100%);
-    color: #fef08a;
-    padding: 0.55rem 1.25rem;
-    font-family: var(--font-cinzel), serif;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    font-weight: 700;
-    text-transform: uppercase;
-    transition: all 0.15s ease-in-out;
-    cursor: pointer;
-    box-shadow: 
-      inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      0 3px 8px rgba(35, 17, 8, 0.3);
-  }
-
-  .tavern-btn-medieval:hover {
-    background: linear-gradient(180deg, #4f2c18 0%, #361b0c 100%);
-    border-color: #ca8a04;
-    color: #ffffff;
-    box-shadow: 
-      inset 0 1px 0 rgba(255, 255, 255, 0.25),
-      0 4px 14px rgba(180, 83, 9, 0.4);
-    transform: translateY(-1px);
-  }
-
-  /* Gilded Gold Special Button */
-  .tavern-btn-gold {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border: 2px solid #78350f;
-    border-top-color: #fde047;
-    background: linear-gradient(180deg, #d97706 0%, #92400e 100%);
-    color: #ffffff;
-    padding: 0.55rem 1.25rem;
-    font-family: var(--font-cinzel), serif;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    font-weight: 700;
-    text-transform: uppercase;
-    transition: all 0.15s ease-in-out;
-    cursor: pointer;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-    box-shadow: 
-      inset 0 1px 0 rgba(255, 255, 255, 0.3),
-      0 3px 10px rgba(146, 64, 14, 0.35);
-  }
-
-  .tavern-btn-gold:hover {
-    background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%);
-    border-color: #ca8a04;
-    box-shadow: 
-      inset 0 1px 0 rgba(255, 255, 255, 0.4),
-      0 5px 16px rgba(217, 119, 6, 0.45);
-    transform: translateY(-1px);
-  }
+/* Wireframe specific neutral utilities */
+.wire-box {
+  background-color: #ffffff;
+  border: 1px solid #e4e4e7;
 }
 
-/* Medieval brass corner accent */
-.brass-corner-tl {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  width: 10px;
-  height: 10px;
-  border-top: 2px solid #b45309;
-  border-left: 2px solid #b45309;
-  pointer-events: none;
+.wire-box-subtle {
+  background-color: #fafafa;
+  border: 1px solid #f4f4f5;
 }
 
-.brass-corner-tr {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 10px;
-  height: 10px;
-  border-top: 2px solid #b45309;
-  border-right: 2px solid #b45309;
-  pointer-events: none;
+.wire-input {
+  width: 100%;
+  border: 1px solid #d4d4d8;
+  background-color: #ffffff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #18181b;
+  outline: none;
+  transition: border-color 0.15s ease-in-out;
 }
 
-.brass-corner-bl {
-  position: absolute;
-  bottom: 4px;
-  left: 4px;
-  width: 10px;
-  height: 10px;
-  border-bottom: 2px solid #b45309;
-  border-left: 2px solid #b45309;
-  pointer-events: none;
+.wire-input:focus {
+  border-color: #18181b;
 }
 
-.brass-corner-br {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 10px;
-  height: 10px;
-  border-bottom: 2px solid #b45309;
-  border-right: 2px solid #b45309;
-  pointer-events: none;
+.wire-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid #18181b;
+  background-color: #18181b;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
 }
 
-/* Custom rustic scrollbars */
+.wire-btn:hover {
+  background-color: #27272a;
+  border-color: #27272a;
+}
+
+.wire-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wire-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid #d4d4d8;
+  background-color: #ffffff;
+  color: #18181b;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.wire-btn-outline:hover {
+  background-color: #f4f4f5;
+  border-color: #a1a1aa;
+}
+
+.wire-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 500;
+  border: 1px solid #e4e4e7;
+  background-color: #fafafa;
+  color: #3f3f46;
+}
+
+/* Custom scrollbar for clean wireframe tables and modals */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #ecdcb9;
+  background: #fafafa;
 }
 ::-webkit-scrollbar-thumb {
-  background: #9c6c39;
-  border: 1px solid #6b431c;
-  border-radius: 2px;
+  background: #d4d4d8;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #78350f;
+  background: #a1a1aa;
 }
