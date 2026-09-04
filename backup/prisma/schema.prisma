@@ -1,0 +1,90 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Game {
+  id           String          @id @default(cuid())
+  name         String
+  description  String
+  category     String
+  price        Float
+  stock        Int             @default(1)
+  image        String
+  minPlayers   Int             @default(1)
+  maxPlayers   Int             @default(4)
+  minAge       Int             @default(8)
+  playtime     Int             @default(45) // minutos
+  components   GameComponents?
+  rentals      Rental[]
+  reservations Reservation[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model GameComponents {
+  id                String   @id @default(cuid())
+  gameId            String   @unique
+  game              Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  cards             Int      @default(0)
+  tokens            Int      @default(0)
+  dice              Int      @default(0)
+  tiles             Int      @default(0)
+  others            Int      @default(0)
+  othersDescription String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model User {
+  id           String        @id @default(cuid())
+  firstName    String
+  lastName     String
+  phone        String
+  email        String        @unique
+  address      String
+  rentals      Rental[]
+  reservations Reservation[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Rental {
+  id              String    @id @default(cuid())
+  gameId          String
+  game            Game      @relation(fields: [gameId], references: [id], onDelete: Restrict)
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clientName      String
+  clientLastName  String
+  clientPhone     String
+  clientEmail     String
+  clientAddress   String
+  startDate       DateTime  @default(now())
+  expectedEndDate DateTime
+  returnDate      DateTime?
+  status          String    @default("ACTIVE") // ACTIVE, RETURNED, LATE
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Reservation {
+  id              String   @id @default(cuid())
+  gameId          String
+  game            Game     @relation(fields: [gameId], references: [id], onDelete: Restrict)
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clientName      String
+  clientLastName  String
+  clientPhone     String
+  clientEmail     String
+  clientAddress   String
+  expectedEndDate DateTime
+  status          String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

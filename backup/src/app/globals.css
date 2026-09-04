@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #09090b;
+  --border: #e4e4e7;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Wireframe specific neutral utilities */
+.wire-box {
+  background-color: #ffffff;
+  border: 1px solid #e4e4e7;
+}
+
+.wire-box-subtle {
+  background-color: #fafafa;
+  border: 1px solid #f4f4f5;
+}
+
+.wire-input {
+  width: 100%;
+  border: 1px solid #d4d4d8;
+  background-color: #ffffff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #18181b;
+  outline: none;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.wire-input:focus {
+  border-color: #18181b;
+}
+
+.wire-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid #18181b;
+  background-color: #18181b;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.wire-btn:hover {
+  background-color: #27272a;
+  border-color: #27272a;
+}
+
+.wire-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wire-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid #d4d4d8;
+  background-color: #ffffff;
+  color: #18181b;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.wire-btn-outline:hover {
+  background-color: #f4f4f5;
+  border-color: #a1a1aa;
+}
+
+.wire-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 500;
+  border: 1px solid #e4e4e7;
+  background-color: #fafafa;
+  color: #3f3f46;
+}
+
+/* Custom scrollbar for clean wireframe tables and modals */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #fafafa;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa;
+}
