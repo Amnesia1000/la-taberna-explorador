@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Compass, Shield, ArrowUpRight, Flame } from "lucide-react";
+import { Compass, Flame } from "lucide-react";
 
 export default function Navbar() {
   return (
@@ -29,23 +29,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Navigation */}
-        <nav className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="px-3.5 py-1.5 text-xs font-tavern tracking-wider uppercase text-[#fde047] hover:text-[#ffffff] border border-transparent hover:border-[#a16207] transition rounded-sm"
-          >
-            [Catálogo de Juegos]
-          </Link>
-          <Link
-            href="/admin"
-            className="tavern-btn-medieval flex items-center gap-2 rounded-sm"
-          >
-            <Shield className="w-3.5 h-3.5 text-[#f59e0b]" />
-            <span>Gremio / Admin</span>
-            <ArrowUpRight className="w-3 h-3 text-[#fde047] opacity-80" />
-          </Link>
-        </nav>
+
       </div>
     </header>
   );
