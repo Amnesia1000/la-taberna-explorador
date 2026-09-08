@@ -4,7 +4,7 @@ import { Compass, Flame } from "lucide-react";
 export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 w-full wood-beam border-b-4 border-[#8c5828] text-[#fef3c7] shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-0 sm:h-20 flex items-center justify-between">
         {/* Brand Banner */}
         <Link href="/" className="flex items-center gap-3.5 group">
           {/* Wooden / Brass Tavern Shield Signet */}
@@ -17,12 +17,12 @@ export default function Navbar() {
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
               <span className="text-[#f59e0b] text-xs">✦</span>
-              <span className="font-tavern text-base sm:text-xl tracking-wider font-bold text-[#fffdfa] group-hover:text-[#fde047] transition-colors drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              <span className="font-tavern text-sm sm:text-xl tracking-wider font-bold text-[#fffdfa] group-hover:text-[#fde047] transition-colors drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight">
                 LA TABERNA DEL EXPLORADOR
               </span>
               <span className="text-[#f59e0b] text-xs">✦</span>
             </div>
-            <span className="text-[11px] text-[#e2b17b] font-serif tracking-widest uppercase flex items-center gap-1.5 opacity-90">
+            <span className="hidden sm:flex text-[11px] text-[#e2b17b] font-serif tracking-widest uppercase items-center gap-1.5 opacity-90">
               <Flame className="w-3 h-3 text-[#d97706]" />
               <span>Gremio de Juegos & Alquiler de Campaña</span>
             </span>

@@ -19,8 +19,8 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
   const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#140a05]/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl parchment-folio border-4 border-[#783e18] shadow-2xl max-h-[92vh] flex flex-col overflow-hidden rounded-sm">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-[#140a05]/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full sm:max-w-2xl parchment-folio border-t-4 sm:border-4 border-[#783e18] shadow-2xl max-h-[95vh] sm:max-h-[92vh] flex flex-col overflow-hidden sm:rounded-sm rounded-t-xl">
         {/* Brass Corner Accents */}
         <div className="brass-corner-tl" />
         <div className="brass-corner-tr" />
@@ -28,7 +28,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
         <div className="brass-corner-br" />
 
         {/* Modal Header - Heavy Timber Header */}
-        <div className="px-6 py-4 wood-beam border-b-2 border-[#8c5828] flex items-center justify-between text-[#fef3c7]">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 wood-beam border-b-2 border-[#8c5828] flex items-center justify-between text-[#fef3c7] shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-sm bg-gradient-to-br from-[#ca8a04] to-[#78350f] text-[#2c1409] flex items-center justify-center font-bold text-xs shadow-md">
               <Compass className="w-4 h-4 text-[#1a0a03]" />
@@ -52,10 +52,10 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
         </div>
 
         {/* Modal Body - Parchment Folio */}
-        <div className="p-6 overflow-y-auto space-y-6 bg-gradient-to-b from-[#fffefc] via-[#fbf7ee] to-[#f4ecd8]">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-gradient-to-b from-[#fffefc] via-[#fbf7ee] to-[#f4ecd8] flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
             {/* Image Container with Wooden Frame */}
-            <div className="border-3 border-[#783e18] aspect-[4/3] bg-[#291307] overflow-hidden relative shadow-md rounded-sm">
+            <div className="border-3 border-[#783e18] aspect-[16/9] sm:aspect-[4/3] bg-[#291307] overflow-hidden relative shadow-md rounded-sm">
               {game.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -148,7 +148,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
         </div>
 
         {/* Modal Footer / WhatsApp CTA */}
-        <div className="px-6 py-4 wood-beam border-t-2 border-[#8c5828] flex items-center justify-end gap-3 text-[#fef3c7]">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 wood-beam border-t-2 border-[#8c5828] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 text-[#fef3c7] shrink-0">
           <button
             type="button"
             onClick={onClose}

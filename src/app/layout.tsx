@@ -20,6 +20,13 @@ export const metadata: Metadata = {
   description: "Alquiler y catálogo de juegos de mesa en la mítica Taberna del Explorador.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#1a0f08",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

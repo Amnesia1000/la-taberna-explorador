@@ -201,6 +201,48 @@ body {
   pointer-events: none;
 }
 
+/* ─── Mobile / Touch Optimizations ─── */
+
+/* Prevent horizontal overflow on all elements */
+html, body {
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove tap highlight on iOS/Android */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure touch targets are at least 44px (Apple HIG) */
+button, a, [role="button"] {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Exception for inline spans/badges that aren't actual buttons */
+span[class*="wax-seal"],
+span[class*="font-tavern"] {
+  min-height: unset;
+  display: inline-flex;
+}
+
+/* Horizontal scroll containers: hide scrollbar visually on mobile */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.overflow-x-auto::-webkit-scrollbar {
+  display: none;
+}
+
 /* Custom rustic scrollbars */
 ::-webkit-scrollbar {
   width: 8px;

@@ -81,13 +81,13 @@ export default function CatalogPage() {
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               {/* Medieval Crest Badge */}
-              <div className="inline-flex items-center gap-2 border-2 border-[#b45309] bg-[#fffdf9] px-3.5 py-1 text-xs font-tavern tracking-widest uppercase mb-3 text-[#78350f] rounded-sm shadow-md">
+              <div className="inline-flex items-center gap-2 border-2 border-[#b45309] bg-[#fffdf9] px-2.5 py-1 text-[10px] sm:text-xs font-tavern tracking-widest uppercase mb-3 text-[#78350f] rounded-sm shadow-md">
                 <span className="text-amber-600 font-bold">⚜</span>
                 <span>TABLÓN OFICIAL DE MISIONES Y AVENTURAS</span>
                 <span className="text-amber-600 font-bold">⚜</span>
               </div>
 
-              <h1 className="font-tavern text-2xl sm:text-4xl font-extrabold uppercase tracking-wide text-[#2c1409] drop-shadow-sm">
+              <h1 className="font-tavern text-xl sm:text-3xl md:text-4xl font-extrabold uppercase tracking-wide text-[#2c1409] drop-shadow-sm leading-tight">
                 CATÁLOGO DE JUEGOS & EXPEDICIONES
               </h1>
 
@@ -99,14 +99,14 @@ export default function CatalogPage() {
                 <span>✦</span>
               </div>
 
-              <p className="text-base font-serif text-[#4a2e19] max-w-2xl leading-relaxed">
+              <p className="text-sm font-serif text-[#4a2e19] max-w-2xl leading-relaxed">
                 Toma asiento junto al fuego. Alquila un juego de mesa para tu posada o castillo por fin de semana o semana completa con todas sus piezas protegidas por el gremio.
               </p>
             </div>
 
             {/* Hanging Wooden Plaques */}
-            <div className="flex flex-col sm:flex-row gap-3 self-start md:self-auto font-tavern text-xs">
-              <div className="wood-beam p-4 min-w-[130px] rounded-sm text-center text-[#fef3c7] shadow-lg border-2 border-[#8c5828]">
+            <div className="flex flex-row sm:flex-col gap-3 self-start md:self-auto font-tavern text-xs w-full sm:w-auto">
+              <div className="wood-beam p-3 sm:p-4 flex-1 sm:min-w-[130px] rounded-sm text-center text-[#fef3c7] shadow-lg border-2 border-[#8c5828]">
                 <span className="text-[#e2b17b] block text-[10px] uppercase tracking-wider font-bold">
                   TÍTULOS
                 </span>
@@ -116,7 +116,7 @@ export default function CatalogPage() {
                 <span className="text-[9px] text-[#b48a66] block uppercase mt-0.5">En la Biblioteca</span>
               </div>
 
-              <div className="wood-beam p-4 min-w-[130px] rounded-sm text-center text-[#fef3c7] shadow-lg border-2 border-[#8c5828]">
+              <div className="wood-beam p-3 sm:p-4 flex-1 sm:min-w-[130px] rounded-sm text-center text-[#fef3c7] shadow-lg border-2 border-[#8c5828]">
                 <span className="text-[#a7f3d0] block text-[10px] uppercase tracking-wider font-bold">
                   DISPONIBLES
                 </span>
@@ -130,8 +130,8 @@ export default function CatalogPage() {
         </section>
 
         {/* Tavern Keeper's Slate Bar (Filtros y Búsqueda) */}
-        <section className="wood-beam p-4 sm:p-5 mb-8 space-y-4 rounded-sm shadow-xl text-[#fef3c7] border-2 border-[#8c5828]">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <section className="wood-beam p-3 sm:p-5 mb-6 sm:mb-8 space-y-3 sm:space-y-4 rounded-sm shadow-xl text-[#fef3c7] border-2 border-[#8c5828]">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
             {/* Search Input */}
             <div className="relative w-full sm:w-72">
               <Search className="w-4 h-4 text-[#ca8a04] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
@@ -154,8 +154,8 @@ export default function CatalogPage() {
             </div>
 
             {/* Quick Player Filter */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs font-tavern text-[#e2b17b] uppercase mr-1 whitespace-nowrap font-bold flex items-center gap-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+              <span className="text-xs font-tavern text-[#e2b17b] uppercase whitespace-nowrap mr-1 font-bold flex items-center gap-1 shrink-0">
                 <span>⚔</span> Jugadores:
               </span>
               {[
