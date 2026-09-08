@@ -8,6 +8,7 @@ import { GameWithComponents } from "@/types";
 import { getGames, getCategories } from "@/lib/actions/games";
 import { Search, Filter, RefreshCw, Compass, Scroll, Shield, Sparkles } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
 export default function CatalogPage() {
   const [games, setGames] = useState<GameWithComponents[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -166,11 +167,10 @@ export default function CatalogPage() {
                 <button
                   key={f.id}
                   onClick={() => setPlayerFilter(f.id)}
-                  className={`px-3 py-1.5 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${
-                    playerFilter === f.id
+                  className={`px-3 py-1.5 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${playerFilter === f.id
                       ? "bg-gradient-to-r from-[#b45309] to-[#92400e] text-white border-[#fde047] font-bold shadow-md"
                       : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
-                  }`}
+                    }`}
                 >
                   {f.label}
                 </button>
@@ -187,11 +187,10 @@ export default function CatalogPage() {
 
             <button
               onClick={() => setSelectedCategory("TODOS")}
-              className={`px-3.5 py-1 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${
-                selectedCategory === "TODOS"
+              className={`px-3.5 py-1 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${selectedCategory === "TODOS"
                   ? "bg-[#b45309] text-white border-[#fde047] font-bold shadow-md"
                   : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
-              }`}
+                }`}
             >
               TODOS ({games.length})
             </button>
@@ -202,11 +201,10 @@ export default function CatalogPage() {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-1 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${
-                    selectedCategory === cat
+                  className={`px-3.5 py-1 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${selectedCategory === cat
                       ? "bg-[#b45309] text-white border-[#fde047] font-bold shadow-md"
                       : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
-                  }`}
+                    }`}
                 >
                   {cat} ({count})
                 </button>
