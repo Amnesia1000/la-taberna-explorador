@@ -1,4 +1,4 @@
-import { Users, Clock, Flame, Sparkles } from "lucide-react";
+import { Users, Clock, Flame } from "lucide-react";
 import { GameWithComponents } from "@/types";
 
 interface GameCardProps {
@@ -17,9 +17,14 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
       <div className="brass-corner-bl" />
       <div className="brass-corner-br" />
 
-      {/* Medieval Portrait Frame with Wooden Bezel */}
+      {/* Medieval Portrait Frame — clickeable para abrir ficha */}
       <div className="p-2.5 pb-0">
-        <div className="relative aspect-[4/3] w-full bg-[#3d2011] border-2 border-[#733d18] overflow-hidden shadow-inner rounded-sm">
+        <button
+          type="button"
+          onClick={() => onSelect(game)}
+          className="relative aspect-[4/3] w-full bg-[#3d2011] border-2 border-[#733d18] overflow-hidden shadow-inner rounded-sm block cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#b45309]"
+          aria-label={`Ver ficha de ${game.name}`}
+        >
           {game.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -32,6 +37,13 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
               [RETRATO NO DISPONIBLE]
             </div>
           )}
+
+          {/* Hover overlay hint */}
+          <div className="absolute inset-0 bg-[#1a0a03]/0 group-hover:bg-[#1a0a03]/20 transition-colors duration-300 flex items-center justify-center">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[#1a0a03]/70 text-[#fde047] font-tavern text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-sm border border-[#b45309]">
+              Ver Ficha →
+            </span>
+          </div>
 
           {/* Stamped Guild Tag */}
           <div className="absolute top-2.5 left-2.5">
@@ -54,7 +66,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
               </span>
             )}
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Content Area */}
@@ -103,19 +115,12 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
 
           {/* Pricing & Button */}
           <div className="flex items-center justify-between pt-1">
-            {/* Golden Coin Price Emblem */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#fef08a] via-[#eab308] to-[#a16207] border border-[#713f12] flex items-center justify-center font-tavern font-bold text-xs text-[#451a03] shadow-md">
-                $
-              </div>
-              <div>
-                <span className="text-[9px] uppercase font-tavern text-[#78593f] block leading-none font-bold">
-                  Precio Alquiler
-                </span>
-                <span className="font-tavern text-lg font-bold text-[#2b170c]">
-                  ${game.price.toLocaleString("es-AR")}
-                </span>
-              </div>
+            {/* Gold coin price — emoji moneda + precio */}
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl leading-none" title="Precio de alquiler">🪙</span>
+              <span className="font-tavern text-2xl font-bold text-[#2b170c]">
+                ${game.price.toLocaleString("es-AR")}
+              </span>
             </div>
 
             <button

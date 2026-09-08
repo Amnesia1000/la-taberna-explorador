@@ -100,20 +100,14 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                   {game.name}
                 </h2>
 
-                {/* Golden Coin Price */}
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#fef08a] via-[#eab308] to-[#a16207] border border-[#713f12] flex items-center justify-center font-tavern font-bold text-sm text-[#451a03] shadow-md">
-                    $
-                  </div>
-                  <div>
-                    <span className="text-[9px] uppercase font-tavern text-[#78593f] block leading-none font-bold">
-                      Tarifa de Préstamo
-                    </span>
-                    <span className="font-tavern text-2xl font-bold text-[#2b170c]">
-                      ${game.price.toLocaleString("es-AR")}
-                    </span>
-                  </div>
+                {/* Gold coin price */}
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="text-3xl leading-none" title="Precio de alquiler">🪙</span>
+                  <span className="font-tavern text-3xl font-bold text-[#2b170c]">
+                    ${game.price.toLocaleString("es-AR")}
+                  </span>
                 </div>
+
 
                 <div className="mt-3 pt-3 border-t-2 border-dotted border-[#c8a774]">
                   <h4 className="text-[10px] font-tavern uppercase text-[#82674e] tracking-wider mb-1 font-bold">
