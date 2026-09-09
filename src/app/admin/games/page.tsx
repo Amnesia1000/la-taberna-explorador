@@ -34,7 +34,8 @@ export default function AdminGamesPage() {
   const [editingGame, setEditingGame] = useState<GameWithComponents | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [imageMode, setImageMode] = useState<"URL" | "FILE">("URL");
+  const [imageMode1, setImageMode1] = useState<"URL" | "FILE">("URL");
+  const [imageMode2, setImageMode2] = useState<"URL" | "FILE">("URL");
 
   // Form Fields State
   const [formData, setFormData] = useState({
@@ -44,6 +45,7 @@ export default function AdminGamesPage() {
     price: 3000,
     stock: 2,
     imageUrl: "",
+    imageUrl2: "",
     minPlayers: 2,
     maxPlayers: 4,
     minAge: 8,
@@ -56,7 +58,8 @@ export default function AdminGamesPage() {
     others: 0,
     othersDescription: "",
   });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile1, setSelectedFile1] = useState<File | null>(null);
+  const [selectedFile2, setSelectedFile2] = useState<File | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -86,6 +89,7 @@ export default function AdminGamesPage() {
       price: 3000,
       stock: 2,
       imageUrl: "",
+      imageUrl2: "",
       minPlayers: 2,
       maxPlayers: 4,
       minAge: 8,
@@ -97,13 +101,15 @@ export default function AdminGamesPage() {
       others: 0,
       othersDescription: "",
     });
-    setSelectedFile(null);
-    setImageMode("URL");
+    setSelectedFile1(null);
+    setSelectedFile2(null);
+    setImageMode1("URL");
+    setImageMode2("URL");
     setErrorMessage("");
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (game: GameWithComponents) => {
+  const handleOpenEdit = (game: any) => {
     setEditingGame(game);
     setFormData({
       name: game.name,
@@ -112,6 +118,7 @@ export default function AdminGamesPage() {
       price: game.price,
       stock: game.stock,
       imageUrl: game.image || "",
+      imageUrl2: game.image2 || "",
       minPlayers: game.minPlayers,
       maxPlayers: game.maxPlayers,
       minAge: game.minAge,
@@ -123,8 +130,10 @@ export default function AdminGamesPage() {
       others: game.components?.others || 0,
       othersDescription: game.components?.othersDescription || "",
     });
-    setSelectedFile(null);
-    setImageMode("URL");
+    setSelectedFile1(null);
+    setSelectedFile2(null);
+    setImageMode1("URL");
+    setImageMode2("URL");
     setErrorMessage("");
     setIsModalOpen(true);
   };
@@ -163,10 +172,18 @@ export default function AdminGamesPage() {
     data.append("others", formData.others.toString());
     data.append("othersDescription", formData.othersDescription);
 
-    if (imageMode === "FILE" && selectedFile) {
-      data.append("imageFile", selectedFile);
+    // Imagen 1
+    if (imageMode1 === "FILE" && selectedFile1) {
+      data.append("imageFile", selectedFile1);
     } else {
       data.append("imageUrl", formData.imageUrl);
+    }
+
+    // Imagen 2
+    if (imageMode2 === "FILE" && selectedFile2) {
+      data.append("imageFile2", selectedFile2);
+    } else {
+      data.append("imageUrl2", formData.imageUrl2);
     }
 
     const res = await saveGame(data, editingGame?.id);
@@ -312,11 +329,10 @@ export default function AdminGamesPage() {
                   </td>
                   <td className="p-3 text-center">
                     <span
-                      className={`inline-block px-2 py-0.5 border text-[11px] ${
-                        game.stock > 0
-                          ? "bg-zinc-50 text-zinc-900 border-zinc-300"
-                          : "bg-red-50 text-red-700 border-red-200 font-bold"
-                      }`}
+                      className={`inline-block px-2 py-0.5 border text-[11px] ${game.stock > 0
+                        ? "bg-zinc-50 text-zinc-900 border-zinc-300"
+                        : "bg-red-50 text-red-700 border-red-200 font-bold"
+                        }`}
                     >
                       {game.stock} unid.
                     </span>
@@ -506,66 +522,107 @@ export default function AdminGamesPage() {
                 </div>
               </div>
 
-              {/* Manejo de Imagen: Archivo local o URL */}
-              <div className="border border-zinc-200 p-4 bg-zinc-50/50 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs uppercase font-bold text-zinc-700">
-                    Imagen del Juego
-                  </span>
-                  <div className="flex items-center gap-2 font-mono text-[11px]">
-                    <button
-                      type="button"
-                      onClick={() => setImageMode("URL")}
-                      className={`px-2 py-0.5 border ${
-                        imageMode === "URL"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                      }`}
-                    >
-                      <LinkIcon className="w-3 h-3 inline mr-1" />
-                      URL Externa
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setImageMode("FILE")}
-                      className={`px-2 py-0.5 border ${
-                        imageMode === "FILE"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                      }`}
-                    >
-                      <Upload className="w-3 h-3 inline mr-1" />
-                      Subir Archivo Local
-                    </button>
+              {/* Manejo de Imagen 1 y Imagen 2 */}
+              <div className="border border-zinc-200 p-4 bg-zinc-50/50 space-y-4">
+                {/* Imagen Principal */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs uppercase font-bold text-zinc-700">
+                      Imagen Principal
+                    </span>
+                    <div className="flex items-center gap-2 font-mono text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => setImageMode1("URL")}
+                        className={`px-2 py-0.5 border ${imageMode1 === "URL"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                          }`}
+                      >
+                        <LinkIcon className="w-3 h-3 inline mr-1" />
+                        URL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setImageMode1("FILE")}
+                        className={`px-2 py-0.5 border ${imageMode1 === "FILE"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                          }`}
+                      >
+                        <Upload className="w-3 h-3 inline mr-1" />
+                        Archivo
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {imageMode === "URL" ? (
-                  <div>
+                  {imageMode1 === "URL" ? (
                     <input
                       type="url"
-                      placeholder="https://images.unsplash.com/..."
+                      placeholder="https://..."
                       value={formData.imageUrl}
                       onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                       className="wire-input text-xs"
                     />
-                    <span className="text-[10px] text-zinc-400 font-mono mt-1 block">
-                      Ingresa el enlace directo a una imagen JPG o PNG.
-                    </span>
-                  </div>
-                ) : (
-                  <div>
+                  ) : (
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      onChange={(e) => setSelectedFile1(e.target.files?.[0] || null)}
                       className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
                     />
-                    <span className="text-[10px] text-zinc-400 font-mono mt-1 block">
-                      El archivo se almacenará localmente en el servidor (/public/uploads).
+                  )}
+                </div>
+
+                {/* Imagen Secundaria / Extra */}
+                <div className="space-y-2 pt-3 border-t border-zinc-200">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs uppercase font-bold text-zinc-700">
+                      Imagen Secundaria (Carrusel)
                     </span>
+                    <div className="flex items-center gap-2 font-mono text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => setImageMode2("URL")}
+                        className={`px-2 py-0.5 border ${imageMode2 === "URL"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                          }`}
+                      >
+                        <LinkIcon className="w-3 h-3 inline mr-1" />
+                        URL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setImageMode2("FILE")}
+                        className={`px-2 py-0.5 border ${imageMode2 === "FILE"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                          }`}
+                      >
+                        <Upload className="w-3 h-3 inline mr-1" />
+                        Archivo
+                      </button>
+                    </div>
                   </div>
-                )}
+
+                  {imageMode2 === "URL" ? (
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={formData.imageUrl2}
+                      onChange={(e) => setFormData({ ...formData, imageUrl2: e.target.value })}
+                      className="wire-input text-xs"
+                    />
+                  ) : (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setSelectedFile2(e.target.files?.[0] || null)}
+                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                    />
+                  )}
+                </div>
               </div>
 
               {/* Desglose de Componentes Iniciales */}

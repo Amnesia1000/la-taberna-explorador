@@ -1,12 +1,32 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Users, Clock, Flame } from "lucide-react";
 import { GameWithComponents } from "@/types";
 
 interface GameCardProps {
-  game: GameWithComponents;
+  game: GameWithComponents & { image2?: string | null };
   onSelect: (game: GameWithComponents) => void;
 }
 
 export default function GameCard({ game, onSelect }: GameCardProps) {
+  // Lista de imágenes disponibles
+  const images = [game.image, game.image2].filter((img): img is string => Boolean(img));
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Rotación automática cada 3.5 segundos si hay más de una imagen
+  useEffect(() => {
+    if (images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  const activeImage = images[currentImageIndex] || game.image;
+
   return (
     <button
       type="button"
@@ -31,16 +51,31 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
           className="absolute z-0 overflow-hidden"
           style={{ top: "5%", left: "13%", right: "9%", height: "50%" }}
         >
-          {game.image ? (
+          {activeImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={game.image}
+              src={activeImage}
               alt={game.name}
-              className="w-full h-full object-cover grayscale contrast-110 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
+              className="w-full h-full object-cover grayscale contrast-110 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-in-out"
             />
           ) : (
             <div className="w-full h-full bg-[#3d2011] flex items-center justify-center text-[#d6b080] font-tavern text-xs">
               [SIN RETRATO]
+            </div>
+          )}
+
+          {/* Puntos de indicación sutiles si hay 2 imágenes */}
+          {images.length > 1 && (
+            <div className="absolute bottom-1.5 right-2 flex gap-1 z-20">
+              {images.map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex
+                      ? "bg-[#fde047] w-2.5"
+                      : "bg-black/60"
+                    }`}
+                />
+              ))}
             </div>
           )}
         </div>
