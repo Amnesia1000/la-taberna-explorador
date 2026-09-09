@@ -14,7 +14,6 @@ import {
   Trash2,
   Search,
   RefreshCw,
-  Image as ImageIcon,
   Upload,
   Link as LinkIcon,
   X,
@@ -112,17 +111,17 @@ export default function AdminGamesPage() {
   const handleOpenEdit = (game: any) => {
     setEditingGame(game);
     setFormData({
-      name: game.name,
-      description: game.description,
-      category: game.category,
-      price: game.price,
-      stock: game.stock,
+      name: game.name || "",
+      description: game.description || "",
+      category: game.category || "",
+      price: game.price || 0,
+      stock: game.stock || 0,
       imageUrl: game.image || "",
       imageUrl2: game.image2 || "",
-      minPlayers: game.minPlayers,
-      maxPlayers: game.maxPlayers,
-      minAge: game.minAge,
-      playtime: game.playtime,
+      minPlayers: game.minPlayers || 1,
+      maxPlayers: game.maxPlayers || 4,
+      minAge: game.minAge || 8,
+      playtime: game.playtime || 30,
       cards: game.components?.cards || 0,
       tokens: game.components?.tokens || 0,
       dice: game.components?.dice || 0,
@@ -176,14 +175,14 @@ export default function AdminGamesPage() {
     if (imageMode1 === "FILE" && selectedFile1) {
       data.append("imageFile", selectedFile1);
     } else {
-      data.append("imageUrl", formData.imageUrl);
+      data.append("imageUrl", formData.imageUrl || "");
     }
 
     // Imagen 2
     if (imageMode2 === "FILE" && selectedFile2) {
       data.append("imageFile2", selectedFile2);
     } else {
-      data.append("imageUrl2", formData.imageUrl2);
+      data.append("imageUrl2", formData.imageUrl2 || "");
     }
 
     const res = await saveGame(data, editingGame?.id);
@@ -407,7 +406,7 @@ export default function AdminGamesPage() {
                   <input
                     type="text"
                     required
-                    value={formData.name}
+                    value={formData.name || ""}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="wire-input text-xs"
                     placeholder="Ej: Catan, Carcassonne..."
@@ -421,7 +420,7 @@ export default function AdminGamesPage() {
                   <textarea
                     rows={2}
                     required
-                    value={formData.description}
+                    value={formData.description || ""}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="wire-input text-xs"
                     placeholder="Resumen del juego, mecánica principal y dinámica..."
@@ -435,7 +434,7 @@ export default function AdminGamesPage() {
                   <input
                     type="text"
                     required
-                    value={formData.category}
+                    value={formData.category || ""}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="wire-input text-xs"
                     placeholder="Estrategia, Party, Cooperativo..."
@@ -450,7 +449,7 @@ export default function AdminGamesPage() {
                     type="number"
                     min="0"
                     required
-                    value={formData.price}
+                    value={formData.price ?? 0}
                     onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                     className="wire-input text-xs"
                   />
@@ -464,7 +463,7 @@ export default function AdminGamesPage() {
                     type="number"
                     min="0"
                     required
-                    value={formData.stock}
+                    value={formData.stock ?? 0}
                     onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
                     className="wire-input text-xs"
                   />
@@ -478,7 +477,7 @@ export default function AdminGamesPage() {
                     type="number"
                     min="5"
                     required
-                    value={formData.playtime}
+                    value={formData.playtime ?? 30}
                     onChange={(e) => setFormData({ ...formData, playtime: parseInt(e.target.value) || 30 })}
                     className="wire-input text-xs"
                   />
@@ -493,7 +492,7 @@ export default function AdminGamesPage() {
                       type="number"
                       min="1"
                       placeholder="Mín"
-                      value={formData.minPlayers}
+                      value={formData.minPlayers ?? 1}
                       onChange={(e) => setFormData({ ...formData, minPlayers: parseInt(e.target.value) || 1 })}
                       className="wire-input text-xs"
                     />
@@ -501,7 +500,7 @@ export default function AdminGamesPage() {
                       type="number"
                       min="1"
                       placeholder="Máx"
-                      value={formData.maxPlayers}
+                      value={formData.maxPlayers ?? 4}
                       onChange={(e) => setFormData({ ...formData, maxPlayers: parseInt(e.target.value) || 4 })}
                       className="wire-input text-xs"
                     />
@@ -515,14 +514,14 @@ export default function AdminGamesPage() {
                   <input
                     type="number"
                     min="3"
-                    value={formData.minAge}
+                    value={formData.minAge ?? 8}
                     onChange={(e) => setFormData({ ...formData, minAge: parseInt(e.target.value) || 8 })}
                     className="wire-input text-xs"
                   />
                 </div>
               </div>
 
-              {/* Manejo de Imagen 1 y Imagen 2 */}
+              {/* Manejo de Imagen 1 e Imagen 2 */}
               <div className="border border-zinc-200 p-4 bg-zinc-50/50 space-y-4">
                 {/* Imagen Principal */}
                 <div className="space-y-2">
@@ -535,8 +534,8 @@ export default function AdminGamesPage() {
                         type="button"
                         onClick={() => setImageMode1("URL")}
                         className={`px-2 py-0.5 border ${imageMode1 === "URL"
-                            ? "bg-zinc-900 text-white border-zinc-900"
-                            : "bg-white text-zinc-600 border-zinc-300"
+                          ? "bg-zinc-900 text-white border-zinc-900"
+                          : "bg-white text-zinc-600 border-zinc-300"
                           }`}
                       >
                         <LinkIcon className="w-3 h-3 inline mr-1" />
@@ -546,8 +545,8 @@ export default function AdminGamesPage() {
                         type="button"
                         onClick={() => setImageMode1("FILE")}
                         className={`px-2 py-0.5 border ${imageMode1 === "FILE"
-                            ? "bg-zinc-900 text-white border-zinc-900"
-                            : "bg-white text-zinc-600 border-zinc-300"
+                          ? "bg-zinc-900 text-white border-zinc-900"
+                          : "bg-white text-zinc-600 border-zinc-300"
                           }`}
                       >
                         <Upload className="w-3 h-3 inline mr-1" />
@@ -558,14 +557,16 @@ export default function AdminGamesPage() {
 
                   {imageMode1 === "URL" ? (
                     <input
+                      key="input-img1-url"
                       type="url"
                       placeholder="https://..."
-                      value={formData.imageUrl}
+                      value={formData.imageUrl || ""}
                       onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                       className="wire-input text-xs"
                     />
                   ) : (
                     <input
+                      key="input-img1-file"
                       type="file"
                       accept="image/*"
                       onChange={(e) => setSelectedFile1(e.target.files?.[0] || null)}
@@ -585,8 +586,8 @@ export default function AdminGamesPage() {
                         type="button"
                         onClick={() => setImageMode2("URL")}
                         className={`px-2 py-0.5 border ${imageMode2 === "URL"
-                            ? "bg-zinc-900 text-white border-zinc-900"
-                            : "bg-white text-zinc-600 border-zinc-300"
+                          ? "bg-zinc-900 text-white border-zinc-900"
+                          : "bg-white text-zinc-600 border-zinc-300"
                           }`}
                       >
                         <LinkIcon className="w-3 h-3 inline mr-1" />
@@ -596,8 +597,8 @@ export default function AdminGamesPage() {
                         type="button"
                         onClick={() => setImageMode2("FILE")}
                         className={`px-2 py-0.5 border ${imageMode2 === "FILE"
-                            ? "bg-zinc-900 text-white border-zinc-900"
-                            : "bg-white text-zinc-600 border-zinc-300"
+                          ? "bg-zinc-900 text-white border-zinc-900"
+                          : "bg-white text-zinc-600 border-zinc-300"
                           }`}
                       >
                         <Upload className="w-3 h-3 inline mr-1" />
@@ -608,14 +609,16 @@ export default function AdminGamesPage() {
 
                   {imageMode2 === "URL" ? (
                     <input
+                      key="input-img2-url"
                       type="url"
                       placeholder="https://..."
-                      value={formData.imageUrl2}
+                      value={formData.imageUrl2 || ""}
                       onChange={(e) => setFormData({ ...formData, imageUrl2: e.target.value })}
                       className="wire-input text-xs"
                     />
                   ) : (
                     <input
+                      key="input-img2-file"
                       type="file"
                       accept="image/*"
                       onChange={(e) => setSelectedFile2(e.target.files?.[0] || null)}
@@ -636,7 +639,7 @@ export default function AdminGamesPage() {
                     <input
                       type="number"
                       min="0"
-                      value={formData.cards}
+                      value={formData.cards ?? 0}
                       onChange={(e) => setFormData({ ...formData, cards: parseInt(e.target.value) || 0 })}
                       className="wire-input text-xs"
                     />
@@ -646,7 +649,7 @@ export default function AdminGamesPage() {
                     <input
                       type="number"
                       min="0"
-                      value={formData.tokens}
+                      value={formData.tokens ?? 0}
                       onChange={(e) => setFormData({ ...formData, tokens: parseInt(e.target.value) || 0 })}
                       className="wire-input text-xs"
                     />
@@ -656,7 +659,7 @@ export default function AdminGamesPage() {
                     <input
                       type="number"
                       min="0"
-                      value={formData.dice}
+                      value={formData.dice ?? 0}
                       onChange={(e) => setFormData({ ...formData, dice: parseInt(e.target.value) || 0 })}
                       className="wire-input text-xs"
                     />
@@ -666,7 +669,7 @@ export default function AdminGamesPage() {
                     <input
                       type="number"
                       min="0"
-                      value={formData.tiles}
+                      value={formData.tiles ?? 0}
                       onChange={(e) => setFormData({ ...formData, tiles: parseInt(e.target.value) || 0 })}
                       className="wire-input text-xs"
                     />
@@ -676,7 +679,7 @@ export default function AdminGamesPage() {
                     <input
                       type="number"
                       min="0"
-                      value={formData.others}
+                      value={formData.others ?? 0}
                       onChange={(e) => setFormData({ ...formData, others: parseInt(e.target.value) || 0 })}
                       className="wire-input text-xs"
                     />
@@ -689,7 +692,7 @@ export default function AdminGamesPage() {
                   </label>
                   <input
                     type="text"
-                    value={formData.othersDescription}
+                    value={formData.othersDescription || ""}
                     onChange={(e) => setFormData({ ...formData, othersDescription: e.target.value })}
                     placeholder="Ej: Reloj de arena, meeples de colores, torre de dados..."
                     className="wire-input text-xs"
