@@ -4,63 +4,36 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { put } from "@vercel/blob";
 
-export async function getGames(search?: string, category?: string) {
+export async function getGames() {
   try {
-    const where: any = {};
-
-    if (search && search.trim() !== "") {
-      where.OR = [
-        { name: { contains: search } },
-        { description: { contains: search } },
-      ];
-    }
-
-    if (category && category !== "TODOS") {
-      where.category = category;
-    }
-
     const games = await prisma.game.findMany({
-      where,
       include: {
         components: true,
       },
       orderBy: {
-        name: "asc",
+        createdAt: "desc",
       },
     });
-
     return { success: true, data: games };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching games:", error);
-    return { success: false, error: "Error al obtener los juegos" };
+    return { success: false, error: "No se pudieron cargar los juegos." };
   }
 }
 
 export async function getCategories() {
   try {
     const games = await prisma.game.findMany({
-      select: { category: true },
+      select: {
+        category: true,
+      },
       distinct: ["category"],
     });
-    return { success: true, data: games.map((g) => g.category) };
-  } catch (error) {
+    const categories = games.map((g) => g.category);
+    return { success: true, data: categories };
+  } catch (error: any) {
     console.error("Error fetching categories:", error);
-    return { success: false, data: [] };
-  }
-}
-
-export async function getGameById(id: string) {
-  try {
-    const game = await prisma.game.findUnique({
-      where: { id },
-      include: {
-        components: true,
-      },
-    });
-    return { success: true, data: game };
-  } catch (error) {
-    console.error("Error fetching game:", error);
-    return { success: false, error: "Juego no encontrado" };
+    return { success: false, error: "No se pudieron cargar las categorías." };
   }
 }
 
@@ -70,147 +43,94 @@ export async function saveGame(formData: FormData, gameId?: string) {
     const description = formData.get("description") as string;
     const category = formData.get("category") as string;
     const price = parseFloat(formData.get("price") as string) || 0;
-    const stock = parseInt(formData.get("stock") as string, 10) || 0;
-    const minPlayers = parseInt(formData.get("minPlayers") as string, 10) || 1;
-    const maxPlayers = parseInt(formData.get("maxPlayers") as string, 10) || 4;
-    const minAge = parseInt(formData.get("minAge") as string, 10) || 8;
-    const playtime = parseInt(formData.get("playtime") as string, 10) || 30;
+    const stock = parseInt(formData.get("stock") as string) || 0;
+    const minPlayers = parseInt(formData.get("minPlayers") as string) || 1;
+    const maxPlayers = parseInt(formData.get("maxPlayers") as string) || 4;
+    const minAge = parseInt(formData.get("minAge") as string) || 8;
+    const playtime = parseInt(formData.get("playtime") as string) || 30;
 
     // Componentes
-    const cards = parseInt(formData.get("cards") as string, 10) || 0;
-    const tokens = parseInt(formData.get("tokens") as string, 10) || 0;
-    const dice = parseInt(formData.get("dice") as string, 10) || 0;
-    const tiles = parseInt(formData.get("tiles") as string, 10) || 0;
-    const others = parseInt(formData.get("others") as string, 10) || 0;
+    const cards = parseInt(formData.get("cards") as string) || 0;
+    const tokens = parseInt(formData.get("tokens") as string) || 0;
+    const dice = parseInt(formData.get("dice") as string) || 0;
+    const tiles = parseInt(formData.get("tiles") as string) || 0;
+    const others = parseInt(formData.get("others") as string) || 0;
     const othersDescription = (formData.get("othersDescription") as string) || "";
 
-    // Manejo de imagen: archivo local o URL
+    // Manejo de la Imagen
     let finalImageUrl = (formData.get("imageUrl") as string) || "";
     const imageFile = formData.get("imageFile") as File | null;
 
-    // Si se seleccionó un archivo local, lo subimos a Vercel Blob
     if (imageFile && imageFile.size > 0) {
       const blob = await put(`games/${Date.now()}-${imageFile.name}`, imageFile, {
         access: "public",
       });
-      finalImageUrl = blob.url; // Esta URL pública de Vercel Blob es la que se guarda en la DB
+      finalImageUrl = blob.url;
     }
 
-    if (!finalImageUrl) {
-      finalImageUrl = "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=800&q=80";
-    }
+    const gameData = {
+      name,
+      description,
+      category,
+      price,
+      stock,
+      minPlayers,
+      maxPlayers,
+      minAge,
+      playtime,
+      image: finalImageUrl,
+    };
 
+    let game;
     if (gameId) {
-      // Actualizar juego existente
-      const updatedGame = await prisma.game.update({
+      game = await prisma.game.update({
         where: { id: gameId },
         data: {
-          name,
-          description,
-          category,
-          price,
-          stock,
-          image: finalImageUrl,
-          minPlayers,
-          maxPlayers,
-          minAge,
-          playtime,
+          ...gameData,
           components: {
             upsert: {
-              create: {
-                cards,
-                tokens,
-                dice,
-                tiles,
-                others,
-                othersDescription,
-              },
-              update: {
-                cards,
-                tokens,
-                dice,
-                tiles,
-                others,
-                othersDescription,
-              },
+              create: { cards, tokens, dice, tiles, others, othersDescription },
+              update: { cards, tokens, dice, tiles, others, othersDescription },
             },
           },
         },
       });
-
-      revalidatePath("/");
-      revalidatePath("/admin");
-      revalidatePath("/admin/games");
-      revalidatePath("/admin/components");
-      return { success: true, data: updatedGame };
     } else {
-      // Crear nuevo juego
-      const newGame = await prisma.game.create({
+      game = await prisma.game.create({
         data: {
-          name,
-          description,
-          category,
-          price,
-          stock,
-          image: finalImageUrl,
-          minPlayers,
-          maxPlayers,
-          minAge,
-          playtime,
+          ...gameData,
           components: {
-            create: {
-              cards,
-              tokens,
-              dice,
-              tiles,
-              others,
-              othersDescription,
-            },
+            create: { cards, tokens, dice, tiles, others, othersDescription },
           },
         },
       });
-
-      revalidatePath("/");
-      revalidatePath("/admin");
-      revalidatePath("/admin/games");
-      revalidatePath("/admin/components");
-      return { success: true, data: newGame };
     }
-} catch (error) {
-  console.error("Error saving game:", error);
-  return { success: false, error: "No se pudo guardar el juego" };
-}
+
+    revalidatePath("/admin/games");
+    revalidatePath("/");
+
+    return { success: true, data: game };
+  } catch (error: any) {
+    console.error("Error saving game:", error);
+    return {
+      success: false,
+      error: error?.message || "No se pudo guardar el juego.",
+    };
+  }
 }
 
 export async function deleteGame(id: string) {
   try {
-    // Comprobar si tiene alquileres activos
-    const activeRentals = await prisma.rental.findFirst({
-      where: {
-        gameId: id,
-        status: "ACTIVE",
-      },
+    await prisma.game.delete({
+      where: { id },
     });
 
-    if (activeRentals) {
-      return {
-        success: false,
-        error: "No se puede eliminar el juego porque tiene alquileres activos en curso.",
-      };
-    }
-
-    await prisma.gameComponents.deleteMany({ where: { gameId: id } });
-    await prisma.rental.deleteMany({ where: { gameId: id } });
-    await prisma.reservation.deleteMany({ where: { gameId: id } });
-    await prisma.game.delete({ where: { id } });
-
-    revalidatePath("/");
-    revalidatePath("/admin");
     revalidatePath("/admin/games");
-    revalidatePath("/admin/components");
+    revalidatePath("/");
+
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting game:", error);
-    return { success: false, error: "Error al eliminar el juego" };
+    return { success: false, error: "No se pudo eliminar el juego." };
   }
 }
