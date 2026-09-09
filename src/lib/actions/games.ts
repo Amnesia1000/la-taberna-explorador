@@ -1,8 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { put } from "@vercel/blob";
+import { revalidatePath } from "next/cache";
 
 export async function getGames() {
   try {
@@ -14,40 +14,45 @@ export async function getGames() {
         createdAt: "desc",
       },
     });
+
     return { success: true, data: games };
-  } catch (error: any) {
-    console.error("Error fetching games:", error);
-    return { success: false, error: "No se pudieron cargar los juegos." };
+  } catch (error) {
+    console.error("Error obteniendo juegos:", error);
+    return { success: false, error: "Error al cargar los juegos" };
   }
 }
 
 export async function getCategories() {
   try {
-    const games = await prisma.game.findMany({
+    const categories = await prisma.game.findMany({
       select: {
         category: true,
       },
       distinct: ["category"],
     });
-    const categories = games.map((g) => g.category);
-    return { success: true, data: categories };
-  } catch (error: any) {
-    console.error("Error fetching categories:", error);
-    return { success: false, error: "No se pudieron cargar las categorías." };
+
+    const categoryList = categories
+      .map((c) => c.category)
+      .filter((c): c is string => Boolean(c));
+
+    return { success: true, data: categoryList };
+  } catch (error) {
+    console.error("Error obteniendo categorías:", error);
+    return { success: false, error: "Error al cargar categorías" };
   }
 }
 
-export async function saveGame(formData: FormData, gameId?: string) {
+export async function saveGame(formData: FormData, id?: string) {
   try {
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
     const category = formData.get("category") as string;
-    const price = parseFloat(formData.get("price") as string) || 0;
-    const stock = parseInt(formData.get("stock") as string) || 0;
-    const minPlayers = parseInt(formData.get("minPlayers") as string) || 1;
-    const maxPlayers = parseInt(formData.get("maxPlayers") as string) || 4;
-    const minAge = parseInt(formData.get("minAge") as string) || 8;
-    const playtime = parseInt(formData.get("playtime") as string) || 30;
+    const price = parseFloat(formData.get("price") as string);
+    const stock = parseInt(formData.get("stock") as string);
+    const minPlayers = parseInt(formData.get("minPlayers") as string);
+    const maxPlayers = parseInt(formData.get("maxPlayers") as string);
+    const minAge = parseInt(formData.get("minAge") as string);
+    const playtime = parseInt(formData.get("playtime") as string);
 
     // Componentes
     const cards = parseInt(formData.get("cards") as string) || 0;
@@ -57,7 +62,7 @@ export async function saveGame(formData: FormData, gameId?: string) {
     const others = parseInt(formData.get("others") as string) || 0;
     const othersDescription = (formData.get("othersDescription") as string) || "";
 
-    // Manejo de la Imagen
+    // PROCESAR IMAGEN 1
     let finalImageUrl = (formData.get("imageUrl") as string) || "";
     const imageFile = formData.get("imageFile") as File | null;
 
@@ -66,6 +71,17 @@ export async function saveGame(formData: FormData, gameId?: string) {
         access: "public",
       });
       finalImageUrl = blob.url;
+    }
+
+    // PROCESAR IMAGEN 2 (CARRUSEL)
+    let finalImageUrl2 = (formData.get("imageUrl2") as string) || "";
+    const imageFile2 = formData.get("imageFile2") as File | null;
+
+    if (imageFile2 && imageFile2.size > 0) {
+      const blob2 = await put(`games/${Date.now()}-2-${imageFile2.name}`, imageFile2, {
+        access: "public",
+      });
+      finalImageUrl2 = blob2.url;
     }
 
     const gameData = {
@@ -79,28 +95,39 @@ export async function saveGame(formData: FormData, gameId?: string) {
       minAge,
       playtime,
       image: finalImageUrl,
+      image2: finalImageUrl2,
     };
 
-    let game;
-    if (gameId) {
-      game = await prisma.game.update({
-        where: { id: gameId },
+    const componentsData = {
+      cards,
+      tokens,
+      dice,
+      tiles,
+      others,
+      othersDescription,
+    };
+
+    if (id) {
+      // ACTUALIZAR JUEGO EXISTENTE
+      await prisma.game.update({
+        where: { id },
         data: {
           ...gameData,
           components: {
             upsert: {
-              create: { cards, tokens, dice, tiles, others, othersDescription },
-              update: { cards, tokens, dice, tiles, others, othersDescription },
+              create: componentsData,
+              update: componentsData,
             },
           },
         },
       });
     } else {
-      game = await prisma.game.create({
+      // CREAR JUEGO NUEVO
+      await prisma.game.create({
         data: {
           ...gameData,
           components: {
-            create: { cards, tokens, dice, tiles, others, othersDescription },
+            create: componentsData,
           },
         },
       });
@@ -109,13 +136,10 @@ export async function saveGame(formData: FormData, gameId?: string) {
     revalidatePath("/admin/games");
     revalidatePath("/");
 
-    return { success: true, data: game };
-  } catch (error: any) {
-    console.error("Error saving game:", error);
-    return {
-      success: false,
-      error: error?.message || "No se pudo guardar el juego.",
-    };
+    return { success: true };
+  } catch (error) {
+    console.error("Error guardando juego:", error);
+    return { success: false, error: "Error al guardar el juego en la base de datos" };
   }
 }
 
@@ -129,8 +153,8 @@ export async function deleteGame(id: string) {
     revalidatePath("/");
 
     return { success: true };
-  } catch (error: any) {
-    console.error("Error deleting game:", error);
-    return { success: false, error: "No se pudo eliminar el juego." };
+  } catch (error) {
+    console.error("Error eliminando juego:", error);
+    return { success: false, error: "Error al eliminar el juego" };
   }
 }

@@ -25,8 +25,6 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
     return () => clearInterval(interval);
   }, [images.length]);
 
-  const activeImage = images[currentImageIndex] || game.image;
-
   return (
     <button
       type="button"
@@ -51,13 +49,17 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
           className="absolute z-0 overflow-hidden"
           style={{ top: "5%", left: "13%", right: "9%", height: "50%" }}
         >
-          {activeImage ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={activeImage}
-              alt={game.name}
-              className="w-full h-full object-cover grayscale contrast-110 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-in-out"
-            />
+          {images.length > 0 ? (
+            images.map((src, idx) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={src}
+                src={src}
+                alt={`${game.name} - ${idx + 1}`}
+                className={`absolute inset-0 w-full h-full object-cover grayscale contrast-110 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 ease-in-out ${idx === currentImageIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
+                  }`}
+              />
+            ))
           ) : (
             <div className="w-full h-full bg-[#3d2011] flex items-center justify-center text-[#d6b080] font-tavern text-xs">
               [SIN RETRATO]
@@ -70,7 +72,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
               {images.map((_, idx) => (
                 <span
                   key={idx}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex
                       ? "bg-[#fde047] w-2.5"
                       : "bg-black/60"
                     }`}
