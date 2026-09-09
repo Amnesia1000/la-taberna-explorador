@@ -7,132 +7,103 @@ interface GameCardProps {
 }
 
 export default function GameCard({ game, onSelect }: GameCardProps) {
-  const isAvailable = game.stock > 0;
-
   return (
-    <div className="group parchment-folio flex flex-col transition-all duration-300 rounded-sm hover:-translate-y-1">
-      {/* Decorative Brass Corner Brackets */}
-      <div className="brass-corner-tl" />
-      <div className="brass-corner-tr" />
-      <div className="brass-corner-bl" />
-      <div className="brass-corner-br" />
+    <button
+      type="button"
+      onClick={() => onSelect(game)}
+      className="group relative w-full text-left focus:outline-none focus:ring-2 focus:ring-[#b45309] rounded-sm"
+      aria-label={`Ver ficha de ${game.name}`}
+    >
+      {/* Ficha frame — aspect ratio ~4:5 matching the PNG */}
+      <div className="relative w-full" style={{ aspectRatio: "4/5" }}>
 
-      {/* Medieval Portrait Frame — clickeable para abrir ficha */}
-      <div className="p-2.5 pb-0">
-        <button
-          type="button"
-          onClick={() => onSelect(game)}
-          className="relative aspect-[4/3] w-full bg-[#3d2011] border-2 border-[#733d18] overflow-hidden shadow-inner rounded-sm block cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#b45309]"
-          aria-label={`Ver ficha de ${game.name}`}
+        {/* The ficha PNG frame on top (z-10) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/ficha.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-10"
+        />
+
+        {/* ── ZONA IMAGEN ── */}
+        <div
+          className="absolute z-0 overflow-hidden"
+          style={{ top: "5%", left: "13%", right: "9%", height: "50%" }}
         >
           {game.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={game.image}
               alt={game.name}
-              className="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
+              className="w-full h-full object-cover grayscale contrast-110 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[#d6b080] font-tavern text-xs">
-              [RETRATO NO DISPONIBLE]
+            <div className="w-full h-full bg-[#3d2011] flex items-center justify-center text-[#d6b080] font-tavern text-xs">
+              [SIN RETRATO]
             </div>
           )}
+        </div>
 
-          {/* Hover overlay hint */}
-          <div className="absolute inset-0 bg-[#1a0a03]/0 group-hover:bg-[#1a0a03]/20 transition-colors duration-300 flex items-center justify-center">
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[#1a0a03]/70 text-[#fde047] font-tavern text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-sm border border-[#b45309]">
-              Ver Ficha →
-            </span>
-          </div>
+        {/* ── CATEGORÍA — esquina superior izquierda de la imagen ── */}
+        <div
+          className="absolute z-20"
+          style={{ top: "9.5%", left: "14.5%" }}
+        >
+          <span className="font-tavern text-[11px] uppercase text-[#fff8ee] tracking-wider font-bold bg-[#1a0a03]/65 backdrop-blur-[2px] px-2.5 py-1 rounded-sm shadow-md">
+            {game.category}
+          </span>
+        </div>
 
-          {/* Stamped Guild Tag */}
-          <div className="absolute top-2.5 left-2.5">
-            <span className="font-tavern text-[10px] uppercase bg-[#fdfaf2]/95 text-[#4a260f] border-2 border-[#8c5828] px-2.5 py-0.5 tracking-wider font-bold shadow-md rounded-sm">
-              {game.category}
-            </span>
-          </div>
-
-          {/* Authentic Medieval Wax Seal Stamp */}
-          <div className="absolute top-2.5 right-2.5">
-            {isAvailable ? (
-              <span className="wax-seal-green font-tavern text-[10px] uppercase px-2.5 py-0.5 flex items-center gap-1.5 font-bold tracking-wider rounded-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#a7f3d0] inline-block animate-ping"></span>
-                {game.stock} DISP.
-              </span>
-            ) : (
-              <span className="wax-seal-red font-tavern text-[10px] uppercase px-2.5 py-0.5 flex items-center gap-1.5 font-bold tracking-wider rounded-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-200 inline-block"></span>
-                AGOTADO
-              </span>
-            )}
-          </div>
-        </button>
-      </div>
-
-      {/* Content Area */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-        <div>
-          {/* Ornate Tavern Title */}
-          <div className="flex items-center gap-1.5 mb-1 text-[#b45309]">
-            <span className="text-xs">⚔</span>
-            <h3 className="font-tavern text-lg font-bold text-[#2d180d] uppercase tracking-wide group-hover:text-[#b45309] transition-colors line-clamp-1">
+        {/* ── ZONA PERGAMINO — nombre, stats y precio ── */}
+        <div
+          className="absolute z-20 flex flex-col justify-between"
+          style={{ top: "58%", left: "14%", right: "10%", bottom: "8%" }}
+        >
+          {/* Title + Description */}
+          <div>
+            <h3 className="font-tavern text-sm sm:text-base font-extrabold text-[#1a0903] uppercase tracking-wide line-clamp-1 leading-tight group-hover:text-[#7a2e00] transition-colors text-center">
               {game.name}
             </h3>
+            <p className="text-[13px] font-serif text-[#2e1508] line-clamp-3 leading-snug mt-0.5 font-semibold max-w-[75%] mx-auto text-center">
+              {game.description}
+            </p>
           </div>
 
-          <p className="text-xs sm:text-sm font-serif text-[#543b27] line-clamp-2 leading-relaxed">
-            {game.description}
-          </p>
-        </div>
-
-        <div className="mt-4 pt-3 border-t-2 border-dotted border-[#c8a774] space-y-3.5">
-          {/* Adventurer Stats Box */}
-          <div className="grid grid-cols-3 gap-1 text-center font-serif text-xs border border-[#cfb58a] bg-[#f5ecda] p-2 rounded-sm shadow-inner">
-            <div className="border-r border-[#d4be95] last:border-0 pr-1" title="Aventureros Requeridos">
-              <div className="flex items-center justify-center gap-1 text-[#854d0e] mb-0.5">
-                <Users className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-tavern uppercase tracking-wider font-bold">Mesa</span>
+          {/* Stats */}
+          <div className="flex justify-center gap-6 text-center">
+            <div className="flex flex-col items-center gap-0">
+              <div className="flex items-center gap-0.5 text-[#3b1a08] leading-none">
+                <Users className="w-3 h-3" />
+                <span className="text-[10px] font-tavern uppercase font-bold text-[#3b1a08] leading-none">Jugadores</span>
               </div>
-              <span className="font-bold text-[#2d180d]">{game.minPlayers}-{game.maxPlayers} p.</span>
+              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none -mt-0.5">{game.minPlayers}-{game.maxPlayers}</span>
             </div>
-
-            <div className="border-r border-[#d4be95] last:border-0 pr-1" title="Nivel de Experiencia / Edad">
-              <div className="flex items-center justify-center gap-1 text-[#854d0e] mb-0.5">
-                <Flame className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-tavern uppercase tracking-wider font-bold">Nivel</span>
+            <div className="flex flex-col items-center gap-0">
+              <div className="flex items-center gap-0.5 text-[#3b1a08] leading-none">
+                <Flame className="w-3 h-3" />
+                <span className="text-[10px] font-tavern uppercase font-bold text-[#3b1a08] leading-none">Edad</span>
               </div>
-              <span className="font-bold text-[#2d180d]">+{game.minAge} años</span>
+              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none -mt-0.5">+{game.minAge}a</span>
             </div>
-
-            <div title="Tiempo de Partida">
-              <div className="flex items-center justify-center gap-1 text-[#854d0e] mb-0.5">
-                <Clock className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-tavern uppercase tracking-wider font-bold">Tiempo</span>
+            <div className="flex flex-col items-center gap-0">
+              <div className="flex items-center gap-0.5 text-[#3b1a08] leading-none">
+                <Clock className="w-3 h-3" />
+                <span className="text-[10px] font-tavern uppercase font-bold text-[#3b1a08] leading-none">Duración</span>
               </div>
-              <span className="font-bold text-[#2d180d]">{game.playtime}m</span>
+              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none -mt-0.5">{game.playtime}m</span>
             </div>
           </div>
 
-          {/* Pricing & Button */}
-          <div className="flex items-center justify-between pt-1">
-            {/* Gold coin price — emoji moneda + precio */}
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl leading-none" title="Precio de alquiler">🪙</span>
-              <span className="font-tavern text-2xl font-bold text-[#2b170c]">
-                ${game.price.toLocaleString("es-AR")}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onSelect(game)}
-              className="tavern-btn-medieval rounded-sm"
-            >
-              Ficha →
-            </button>
+          {/* Price */}
+          <div className="flex items-baseline gap-1.5 ml-6">
+            <span className="text-2xl leading-none">🪙</span>
+            <span className="font-tavern text-2xl font-extrabold text-[#1a0903]">
+              ${game.price.toLocaleString("es-AR")}
+            </span>
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
