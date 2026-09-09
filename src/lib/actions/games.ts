@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import fs from "fs";
 import path from "path";
+import { put } from "@vercel/blob";
 
 export async function getGames(search?: string, category?: string) {
   try {
@@ -86,89 +87,60 @@ export async function saveGame(formData: FormData, gameId?: string) {
     const othersDescription = (formData.get("othersDescription") as string) || "";
 
     // Manejo de imagen: archivo local o URL
-    let imageUrl = (formData.get("imageUrl") as string) || "";
+    let finalImageUrl = (formData.get("imageUrl") as string) || "";
     const imageFile = formData.get("imageFile") as File | null;
 
-    if (imageFile && imageFile.size > 0 && typeof imageFile.arrayBuffer === "function") {
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      const uploadsDir = path.join(process.cwd(), "public", "uploads");
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-
-      const extension = path.extname(imageFile.name) || ".jpg";
-      const fileName = `game-${Date.now()}-${Math.random().toString(36).substring(7)}${extension}`;
-      const filePath = path.join(uploadsDir, fileName);
-
-      fs.writeFileSync(filePath, buffer);
-      imageUrl = `/uploads/${fileName}`;
+    // Si se seleccionó un archivo local, lo subimos a Vercel Blob
+    if (imageFile && imageFile.size > 0) {
+      const blob = await put(`games/${Date.now()}-${imageFile.name}`, imageFile, {
+        access: "public",
+      });
+      finalImageUrl = blob.url; // Esta URL pública de Vercel Blob es la que se guarda en la DB
     }
+
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const extension = path.extname(imageFile.name) || ".jpg";
+    const fileName = `game-${Date.now()}-${Math.random().toString(36).substring(7)}${extension}`;
+    const filePath = path.join(uploadsDir, fileName);
+
+    fs.writeFileSync(filePath, buffer);
+    imageUrl = `/uploads/${fileName}`;
+  }
 
     if (!imageUrl) {
-      imageUrl = "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=800&q=80";
-    }
+    imageUrl = "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=800&q=80";
+  }
 
-    if (gameId) {
-      // Actualizar juego existente
-      const updatedGame = await prisma.game.update({
-        where: { id: gameId },
-        data: {
-          name,
-          description,
-          category,
-          price,
-          stock,
-          image: imageUrl,
-          minPlayers,
-          maxPlayers,
-          minAge,
-          playtime,
-          components: {
-            upsert: {
-              create: {
-                cards,
-                tokens,
-                dice,
-                tiles,
-                others,
-                othersDescription,
-              },
-              update: {
-                cards,
-                tokens,
-                dice,
-                tiles,
-                others,
-                othersDescription,
-              },
-            },
-          },
-        },
-      });
-
-      revalidatePath("/");
-      revalidatePath("/admin");
-      revalidatePath("/admin/games");
-      revalidatePath("/admin/components");
-      return { success: true, data: updatedGame };
-    } else {
-      // Crear nuevo juego
-      const newGame = await prisma.game.create({
-        data: {
-          name,
-          description,
-          category,
-          price,
-          stock,
-          image: imageUrl,
-          minPlayers,
-          maxPlayers,
-          minAge,
-          playtime,
-          components: {
+  if (gameId) {
+    // Actualizar juego existente
+    const updatedGame = await prisma.game.update({
+      where: { id: gameId },
+      data: {
+        name,
+        description,
+        category,
+        price,
+        stock,
+        image: imageUrl,
+        minPlayers,
+        maxPlayers,
+        minAge,
+        playtime,
+        components: {
+          upsert: {
             create: {
+              cards,
+              tokens,
+              dice,
+              tiles,
+              others,
+              othersDescription,
+            },
+            update: {
               cards,
               tokens,
               dice,
@@ -178,18 +150,51 @@ export async function saveGame(formData: FormData, gameId?: string) {
             },
           },
         },
-      });
+      },
+    });
 
-      revalidatePath("/");
-      revalidatePath("/admin");
-      revalidatePath("/admin/games");
-      revalidatePath("/admin/components");
-      return { success: true, data: newGame };
-    }
-  } catch (error) {
-    console.error("Error saving game:", error);
-    return { success: false, error: "No se pudo guardar el juego" };
+    revalidatePath("/");
+    revalidatePath("/admin");
+    revalidatePath("/admin/games");
+    revalidatePath("/admin/components");
+    return { success: true, data: updatedGame };
+  } else {
+    // Crear nuevo juego
+    const newGame = await prisma.game.create({
+      data: {
+        name,
+        description,
+        category,
+        price,
+        stock,
+        image: imageUrl,
+        minPlayers,
+        maxPlayers,
+        minAge,
+        playtime,
+        components: {
+          create: {
+            cards,
+            tokens,
+            dice,
+            tiles,
+            others,
+            othersDescription,
+          },
+        },
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    revalidatePath("/admin/games");
+    revalidatePath("/admin/components");
+    return { success: true, data: newGame };
   }
+} catch (error) {
+  console.error("Error saving game:", error);
+  return { success: false, error: "No se pudo guardar el juego" };
+}
 }
 
 export async function deleteGame(id: string) {
