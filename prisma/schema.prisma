@@ -15,6 +15,7 @@ model Game {
   price        Float
   stock        Int             @default(1)
   image        String
+  image2       String?
   minPlayers   Int             @default(1)
   maxPlayers   Int             @default(4)
   minAge       Int             @default(8)
