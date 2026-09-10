@@ -49,6 +49,7 @@ export default function AdminGamesPage() {
     maxPlayers: 4,
     minAge: 8,
     playtime: 45,
+    maxPlaytime: 60,
     // Componentes
     cards: 0,
     tokens: 0,
@@ -93,6 +94,7 @@ export default function AdminGamesPage() {
       maxPlayers: 4,
       minAge: 8,
       playtime: 45,
+      maxPlaytime: 60,
       cards: 0,
       tokens: 0,
       dice: 0,
@@ -122,6 +124,7 @@ export default function AdminGamesPage() {
       maxPlayers: game.maxPlayers || 4,
       minAge: game.minAge || 8,
       playtime: game.playtime || 30,
+      maxPlaytime: game.maxPlaytime || game.playtime || 30,
       cards: game.components?.cards || 0,
       tokens: game.components?.tokens || 0,
       dice: game.components?.dice || 0,
@@ -163,6 +166,7 @@ export default function AdminGamesPage() {
     data.append("maxPlayers", formData.maxPlayers.toString());
     data.append("minAge", formData.minAge.toString());
     data.append("playtime", formData.playtime.toString());
+    data.append("maxPlaytime", formData.maxPlaytime.toString());
 
     data.append("cards", formData.cards.toString());
     data.append("tokens", formData.tokens.toString());
@@ -195,17 +199,19 @@ export default function AdminGamesPage() {
     setSaving(false);
   };
 
-  const filteredGames = games.filter((g) => {
-    if (selectedCategory !== "TODOS" && g.category !== selectedCategory) return false;
-    if (searchTerm.trim() !== "") {
-      const term = searchTerm.toLowerCase();
-      return (
-        g.name.toLowerCase().includes(term) ||
-        g.description.toLowerCase().includes(term)
-      );
-    }
-    return true;
-  });
+  const filteredGames = games
+    .filter((g) => {
+      if (selectedCategory !== "TODOS" && g.category !== selectedCategory) return false;
+      if (searchTerm.trim() !== "") {
+        const term = searchTerm.toLowerCase();
+        return (
+          g.name.toLowerCase().includes(term) ||
+          g.description.toLowerCase().includes(term)
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   return (
     <div className="space-y-6">
@@ -321,7 +327,9 @@ export default function AdminGamesPage() {
                     {game.minPlayers}-{game.maxPlayers} p.
                   </td>
                   <td className="p-3 text-center text-zinc-700">
-                    {game.playtime} min
+                    {game.maxPlaytime && game.maxPlaytime !== game.playtime
+                      ? `${game.playtime}-${game.maxPlaytime} min`
+                      : `${game.playtime} min`}
                   </td>
                   <td className="p-3 text-right font-bold text-zinc-900">
                     ${game.price.toLocaleString("es-AR")}
@@ -471,16 +479,27 @@ export default function AdminGamesPage() {
 
                 <div>
                   <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
-                    Tiempo de Juego (Minutos) *
+                    Tiempo de Juego (Mín - Máx Minutos) *
                   </label>
-                  <input
-                    type="number"
-                    min="5"
-                    required
-                    value={formData.playtime ?? 30}
-                    onChange={(e) => setFormData({ ...formData, playtime: parseInt(e.target.value) || 30 })}
-                    className="wire-input text-xs"
-                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      min="5"
+                      placeholder="Mín"
+                      required
+                      value={formData.playtime ?? 30}
+                      onChange={(e) => setFormData({ ...formData, playtime: parseInt(e.target.value) || 30 })}
+                      className="wire-input text-xs"
+                    />
+                    <input
+                      type="number"
+                      min="5"
+                      placeholder="Máx"
+                      value={formData.maxPlaytime ?? 60}
+                      onChange={(e) => setFormData({ ...formData, maxPlaytime: parseInt(e.target.value) || 0 })}
+                      className="wire-input text-xs"
+                    />
+                  </div>
                 </div>
 
                 <div>

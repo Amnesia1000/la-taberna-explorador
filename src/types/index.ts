@@ -20,10 +20,12 @@ export interface GameWithComponents {
   price: number;
   stock: number;
   image: string;
+  image2?: string | null;
   minPlayers: number;
   maxPlayers: number;
   minAge: number;
   playtime: number;
+  maxPlaytime?: number | null;
   components?: GameComponentsData | null;
   createdAt: Date;
   updatedAt: Date;

@@ -39,25 +39,27 @@ export default function CatalogPage() {
   }, []);
 
   const filteredGames = useMemo(() => {
-    return games.filter((game) => {
-      // Category filter
-      if (selectedCategory !== "TODOS" && game.category !== selectedCategory) {
-        return false;
-      }
-      // Search filter
-      if (searchTerm.trim() !== "") {
-        const term = searchTerm.toLowerCase();
-        const matchesName = game.name.toLowerCase().includes(term);
-        const matchesDesc = game.description.toLowerCase().includes(term);
-        if (!matchesName && !matchesDesc) return false;
-      }
-      // Player filter
-      if (playerFilter === "SOLO" && game.minPlayers > 1) return false;
-      if (playerFilter === "2P" && (game.minPlayers > 2 || game.maxPlayers < 2)) return false;
-      if (playerFilter === "PARTY" && game.maxPlayers < 5) return false;
+    return games
+      .filter((game) => {
+        // Category filter
+        if (selectedCategory !== "TODOS" && game.category !== selectedCategory) {
+          return false;
+        }
+        // Search filter
+        if (searchTerm.trim() !== "") {
+          const term = searchTerm.toLowerCase();
+          const matchesName = game.name.toLowerCase().includes(term);
+          const matchesDesc = game.description.toLowerCase().includes(term);
+          if (!matchesName && !matchesDesc) return false;
+        }
+        // Player filter
+        if (playerFilter === "SOLO" && game.minPlayers > 1) return false;
+        if (playerFilter === "2P" && (game.minPlayers > 2 || game.maxPlayers < 2)) return false;
+        if (playerFilter === "PARTY" && game.maxPlayers < 5) return false;
 
-      return true;
-    });
+        return true;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
   }, [games, selectedCategory, searchTerm, playerFilter]);
 
   return (
@@ -103,29 +105,6 @@ export default function CatalogPage() {
                 Toma asiento junto al fuego. Alquila un juego de mesa para tu posada o castillo por fin de semana o semana completa con todas sus piezas protegidas por el gremio.
               </p>
             </div>
-
-            {/* Hanging Wooden Plaques */}
-            <div className="flex flex-row sm:flex-col gap-3 self-start md:self-auto font-tavern text-xs w-full sm:w-auto">
-              <div className="wood-beam p-3 sm:p-4 flex-1 sm:min-w-[130px] rounded-sm text-center text-[#fef3c7] shadow-lg border-2 border-[#8c5828]">
-                <span className="text-[#e2b17b] block text-[10px] uppercase tracking-wider font-bold">
-                  TÍTULOS
-                </span>
-                <span className="text-3xl font-bold text-[#fde047] drop-shadow">
-                  {games.length}
-                </span>
-                <span className="text-[9px] text-[#b48a66] block uppercase mt-0.5">En la Biblioteca</span>
-              </div>
-
-              <div className="wood-beam p-3 sm:p-4 flex-1 sm:min-w-[130px] rounded-sm text-center text-[#fef3c7] shadow-lg border-2 border-[#8c5828]">
-                <span className="text-[#a7f3d0] block text-[10px] uppercase tracking-wider font-bold">
-                  DISPONIBLES
-                </span>
-                <span className="text-3xl font-bold text-[#4ade80] drop-shadow">
-                  {games.reduce((acc, g) => acc + (g.stock > 0 ? g.stock : 0), 0)}
-                </span>
-                <span className="text-[9px] text-[#86efac]/70 block uppercase mt-0.5">Listos para jugar</span>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -168,8 +147,8 @@ export default function CatalogPage() {
                   key={f.id}
                   onClick={() => setPlayerFilter(f.id)}
                   className={`px-3 py-1.5 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${playerFilter === f.id
-                      ? "bg-gradient-to-r from-[#b45309] to-[#92400e] text-white border-[#fde047] font-bold shadow-md"
-                      : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
+                    ? "bg-gradient-to-r from-[#b45309] to-[#92400e] text-white border-[#fde047] font-bold shadow-md"
+                    : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
                     }`}
                 >
                   {f.label}
@@ -188,8 +167,8 @@ export default function CatalogPage() {
             <button
               onClick={() => setSelectedCategory("TODOS")}
               className={`px-3.5 py-1 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${selectedCategory === "TODOS"
-                  ? "bg-[#b45309] text-white border-[#fde047] font-bold shadow-md"
-                  : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
+                ? "bg-[#b45309] text-white border-[#fde047] font-bold shadow-md"
+                : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
                 }`}
             >
               TODOS ({games.length})
@@ -202,8 +181,8 @@ export default function CatalogPage() {
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-3.5 py-1 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${selectedCategory === cat
-                      ? "bg-[#b45309] text-white border-[#fde047] font-bold shadow-md"
-                      : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
+                    ? "bg-[#b45309] text-white border-[#fde047] font-bold shadow-md"
+                    : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
                     }`}
                 >
                   {cat} ({count})

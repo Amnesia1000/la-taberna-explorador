@@ -25,6 +25,12 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
     return () => clearInterval(interval);
   }, [images.length]);
 
+  // Formato dinámico de duración (ej: 20-30m o 30m)
+  const formattedPlaytime =
+    game.maxPlaytime && game.maxPlaytime !== game.playtime
+      ? `${game.playtime}-${game.maxPlaytime}m`
+      : `${game.playtime}m`;
+
   return (
     <button
       type="button"
@@ -99,41 +105,38 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
         >
           {/* Title + Description */}
           <div>
-            <h3 className="font-tavern text-sm sm:text-base font-extrabold text-[#1a0903] uppercase tracking-wide line-clamp-1 leading-tight group-hover:text-[#7a2e00] transition-colors text-center">
+            <h3 className="font-tavern text-sm sm:text-base font-extrabold text-[#1a0903] uppercase tracking-wide line-clamp-1 max-w-[93%] mx-auto leading-tight group-hover:text-[#7a2e00] transition-colors text-center">
               {game.name}
             </h3>
-            <p className="text-[13px] font-serif text-[#2e1508] line-clamp-3 leading-snug mt-0.5 font-semibold max-w-[75%] mx-auto text-center">
+            <p className="text-[13px] font-serif text-[#2e1508] line-clamp-3 leading-tight mt-0.5 font-semibold max-w-[75%] mx-auto text-center">
               {game.description}
             </p>
           </div>
 
           {/* Stats */}
-          <div className="flex justify-center gap-6 text-center">
-            <div className="flex flex-col items-center gap-0">
-              <div className="flex items-center gap-0.5 text-[#3b1a08] leading-none">
-                <Users className="w-3 h-3" />
-                <span className="text-[10px] font-tavern uppercase font-bold text-[#3b1a08] leading-none">Jugadores</span>
-              </div>
-              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none -mt-0.5">{game.minPlayers}-{game.maxPlayers}</span>
+          <div className="flex justify-center gap-6 text-center items-center">
+            <div className="flex flex-col items-center gap-1">
+              <Users className="w-5 h-5 text-[#3b1a08]" />
+              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
+                {game.minPlayers}-{game.maxPlayers}
+              </span>
             </div>
-            <div className="flex flex-col items-center gap-0">
-              <div className="flex items-center gap-0.5 text-[#3b1a08] leading-none">
-                <Flame className="w-3 h-3" />
-                <span className="text-[10px] font-tavern uppercase font-bold text-[#3b1a08] leading-none">Edad</span>
-              </div>
-              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none -mt-0.5">+{game.minAge}a</span>
+            <div className="flex flex-col items-center gap-1">
+              <Flame className="w-5 h-5 text-[#3b1a08]" />
+              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
+                +{game.minAge}
+              </span>
             </div>
-            <div className="flex flex-col items-center gap-0">
-              <div className="flex items-center gap-0.5 text-[#3b1a08] leading-none">
-                <Clock className="w-3 h-3" />
-                <span className="text-[10px] font-tavern uppercase font-bold text-[#3b1a08] leading-none">Duración</span>
-              </div>
-              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none -mt-0.5">{game.playtime}m</span>
+            <div className="flex flex-col items-center gap-1">
+              <Clock className="w-5 h-5 text-[#3b1a08]" />
+              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
+                {formattedPlaytime}
+              </span>
             </div>
           </div>
 
           {/* Price */}
-          <div className="flex items-baseline gap-1.5 ml-6">
+          <div className="flex items-baseline gap-1.5 ml-10 relative translate-y-1.5">
             <span className="text-2xl leading-none">🪙</span>
             <span className="font-tavern text-2xl font-extrabold text-[#1a0903]">
               ${game.price.toLocaleString("es-AR")}

@@ -54,6 +54,10 @@ export async function saveGame(formData: FormData, id?: string) {
     const minAge = parseInt(formData.get("minAge") as string);
     const playtime = parseInt(formData.get("playtime") as string);
 
+    // TIEMPO MÁXIMO
+    const maxPlaytimeRaw = formData.get("maxPlaytime") as string;
+    const maxPlaytime = maxPlaytimeRaw ? parseInt(maxPlaytimeRaw) : playtime;
+
     // Componentes
     const cards = parseInt(formData.get("cards") as string) || 0;
     const tokens = parseInt(formData.get("tokens") as string) || 0;
@@ -94,6 +98,7 @@ export async function saveGame(formData: FormData, id?: string) {
       maxPlayers,
       minAge,
       playtime,
+      maxPlaytime,
       image: finalImageUrl,
       image2: finalImageUrl2,
     };
