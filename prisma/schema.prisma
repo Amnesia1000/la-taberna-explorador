@@ -1,10 +1,10 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model Game {
@@ -15,22 +15,22 @@ model Game {
   price        Float
   stock        Int             @default(1)
   image        String
-  image2       String?
   minPlayers   Int             @default(1)
   maxPlayers   Int             @default(4)
   minAge       Int             @default(8)
-  playtime     Int             @default(45) // minutos
+  playtime     Int             @default(45)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  image2       String?
+  maxPlaytime  Int?
   components   GameComponents?
   rentals      Rental[]
   reservations Reservation[]
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
 }
 
 model GameComponents {
   id                String   @id @default(cuid())
   gameId            String   @unique
-  game              Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
   cards             Int      @default(0)
   tokens            Int      @default(0)
   dice              Int      @default(0)
@@ -39,6 +39,7 @@ model GameComponents {
   othersDescription String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  game              Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -48,18 +49,16 @@ model User {
   phone        String
   email        String        @unique
   address      String
-  rentals      Rental[]
-  reservations Reservation[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  rentals      Rental[]
+  reservations Reservation[]
 }
 
 model Rental {
   id              String    @id @default(cuid())
   gameId          String
-  game            Game      @relation(fields: [gameId], references: [id], onDelete: Restrict)
   userId          String?
-  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   clientName      String
   clientLastName  String
   clientPhone     String
@@ -68,24 +67,32 @@ model Rental {
   startDate       DateTime  @default(now())
   expectedEndDate DateTime
   returnDate      DateTime?
-  status          String    @default("ACTIVE") // ACTIVE, RETURNED, LATE
+  status          String    @default("ACTIVE")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  game            Game      @relation(fields: [gameId], references: [id])
+  user            User?     @relation(fields: [userId], references: [id])
 }
 
 model Reservation {
   id              String   @id @default(cuid())
   gameId          String
-  game            Game     @relation(fields: [gameId], references: [id], onDelete: Restrict)
   userId          String?
-  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   clientName      String
   clientLastName  String
   clientPhone     String
   clientEmail     String
   clientAddress   String
   expectedEndDate DateTime
-  status          String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  status          String   @default("PENDING")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  game            Game     @relation(fields: [gameId], references: [id])
+  user            User?    @relation(fields: [userId], references: [id])
+}
+
+model playing_with_neon {
+  id    Int    @id @default(autoincrement())
+  name  String
+  value Float? @db.Real
 }
