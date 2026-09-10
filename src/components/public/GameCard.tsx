@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Clock, Flame } from "lucide-react";
+import { Users, Clock, Baby } from "lucide-react";
 import { GameWithComponents } from "@/types";
 
 interface GameCardProps {
@@ -79,8 +79,8 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
                 <span
                   key={idx}
                   className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex
-                      ? "bg-[#fde047] w-2.5"
-                      : "bg-black/60"
+                    ? "bg-[#fde047] w-2.5"
+                    : "bg-black/60"
                     }`}
                 />
               ))}
@@ -122,7 +122,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
               </span>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <Flame className="w-5 h-5 text-[#3b1a08]" />
+              <Baby className="w-5 h-5 text-[#3b1a08]" />
               <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
                 +{game.minAge}
               </span>

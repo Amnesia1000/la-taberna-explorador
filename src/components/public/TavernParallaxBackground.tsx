@@ -11,8 +11,7 @@ export default function TavernParallaxBackground() {
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          // Desplazamiento a velocidad reducida (30% de la velocidad de scroll) para un parallax notable y fluido
-          setOffsetY(window.scrollY * 0.3);
+          setOffsetY(window.scrollY * 0.2);
           ticking = false;
         });
         ticking = true;
@@ -25,17 +24,25 @@ export default function TavernParallaxBackground() {
 
   return (
     <div
-      className="fixed inset-0 pointer-events-none -z-10 overflow-hidden"
+      className="absolute inset-0 pointer-events-none -z-10 overflow-hidden w-full min-h-full"
       aria-hidden="true"
     >
       <div
-        className="absolute inset-x-0 -top-12 w-full h-[150vh] bg-cover bg-center"
+        className="absolute inset-x-0 top-0 w-full"
         style={{
-          backgroundImage: `linear-gradient(180deg, rgba(20, 11, 6, 0.45) 0%, rgba(20, 11, 6, 0.15) 30%, rgba(18, 9, 5, 0.65) 100%), url('/tavern-wall.jpg')`,
           transform: `translate3d(0, -${offsetY}px, 0)`,
           willChange: "transform",
         }}
-      />
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/tavern-wall.jpg"
+          alt=""
+          className="w-full h-auto block object-cover"
+        />
+        {/* Capa de degradado oscuro sobre la imagen para mantener la lectura del pergamino */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#140b06]/45 via-[#140b06]/15 to-[#120905]/65 w-full h-full" />
+      </div>
     </div>
   );
 }

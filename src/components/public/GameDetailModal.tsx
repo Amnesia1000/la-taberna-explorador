@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Users, Clock, Flame, MessageSquare, Compass, Shield } from "lucide-react";
+import { X, Users, Clock, Baby, MessageSquare, Compass } from "lucide-react";
 import { GameWithComponents } from "@/types";
 
 interface GameDetailModalProps {
@@ -17,6 +17,12 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
   const phone = "5491144556677";
   const message = `¡Saludos Tabernero! Deseo alquilar el juego "${game.name}" (${game.category}) en La Taberna del Explorador. ¿Hay ejemplares disponibles en el inventario?`;
   const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+  // Formato dinámico de duración (ej: 20-30m o 30m)
+  const formattedPlaytime =
+    game.maxPlaytime && game.maxPlaytime !== game.playtime
+      ? `${game.playtime}-${game.maxPlaytime}m`
+      : `${game.playtime}m`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-[#140a05]/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -74,7 +80,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                 {isAvailable ? (
                   <span className="wax-seal-green font-tavern text-[10px] uppercase px-2.5 py-1 flex items-center gap-1.5 font-bold tracking-wider rounded-sm">
                     <span className="w-2 h-2 rounded-full bg-[#a7f3d0] inline-block animate-ping"></span>
-                    DISPONIBLE: {game.stock} UNID.
+                    DISPONIBLE
                   </span>
                 ) : (
                   <span className="wax-seal-red font-tavern text-[10px] uppercase px-2.5 py-1 flex items-center gap-1.5 font-bold tracking-wider rounded-sm">
@@ -108,7 +114,6 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                   </span>
                 </div>
 
-
                 <div className="mt-3 pt-3 border-t-2 border-dotted border-[#c8a774]">
                   <h4 className="text-[10px] font-tavern uppercase text-[#82674e] tracking-wider mb-1 font-bold">
                     Reseña de Campaña
@@ -119,22 +124,25 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                 </div>
               </div>
 
-              {/* Stats Box */}
-              <div className="grid grid-cols-3 gap-1 border-2 border-[#ad8551] bg-[#f5ecd8] p-3 text-center rounded-sm shadow-inner">
-                <div className="border-r border-[#d4be95] last:border-0 pr-1">
-                  <Users className="w-4 h-4 mx-auto text-[#854d0e] mb-1" />
-                  <span className="text-[10px] text-[#78593f] font-tavern block uppercase font-bold">Mesa</span>
-                  <span className="font-bold text-[#2d1409] text-xs font-serif">{game.minPlayers} a {game.maxPlayers} p.</span>
+              {/* Stats Box - Iconos sin texto e icono Baby */}
+              <div className="grid grid-cols-3 gap-2 border-2 border-[#ad8551] bg-[#f5ecd8] p-3 text-center rounded-sm shadow-inner items-center">
+                <div className="border-r border-[#d4be95] flex flex-col items-center justify-center gap-1">
+                  <Users className="w-6 h-6 text-[#3b1a08]" />
+                  <span className="font-extrabold text-[#2d1409] text-base leading-none">
+                    {game.minPlayers}-{game.maxPlayers}
+                  </span>
                 </div>
-                <div className="border-r border-[#d4be95] last:border-0 pr-1">
-                  <Flame className="w-4 h-4 mx-auto text-[#854d0e] mb-1" />
-                  <span className="text-[10px] text-[#78593f] font-tavern block uppercase font-bold">Nivel</span>
-                  <span className="font-bold text-[#2d1409] text-xs font-serif">+{game.minAge} años</span>
+                <div className="border-r border-[#d4be95] flex flex-col items-center justify-center gap-1">
+                  <Baby className="w-6 h-6 text-[#3b1a08]" />
+                  <span className="font-extrabold text-[#2d1409] text-base leading-none">
+                    +{game.minAge}
+                  </span>
                 </div>
-                <div>
-                  <Clock className="w-4 h-4 mx-auto text-[#854d0e] mb-1" />
-                  <span className="text-[10px] text-[#78593f] font-tavern block uppercase font-bold">Tiempo</span>
-                  <span className="font-bold text-[#2d1409] text-xs font-serif">{game.playtime} min</span>
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Clock className="w-6 h-6 text-[#3b1a08]" />
+                  <span className="font-extrabold text-[#2d1409] text-base leading-none">
+                    {formattedPlaytime}
+                  </span>
                 </div>
               </div>
             </div>
