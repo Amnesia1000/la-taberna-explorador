@@ -21,6 +21,8 @@ export interface GameWithComponents {
   stock: number;
   image: string;
   image2?: string | null;
+  qrManual?: string | null;
+  qrVideo?: string | null;
   minPlayers: number;
   maxPlayers: number;
   minAge: number;

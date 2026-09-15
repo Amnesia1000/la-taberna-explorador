@@ -22,6 +22,8 @@ model Game {
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   image2       String?
+  qrManual     String?
+  qrVideo      String?
   maxPlaytime  Int?
   components   GameComponents?
   rentals      Rental[]

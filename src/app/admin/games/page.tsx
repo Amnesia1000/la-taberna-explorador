@@ -35,6 +35,8 @@ export default function AdminGamesPage() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [imageMode1, setImageMode1] = useState<"URL" | "FILE">("URL");
   const [imageMode2, setImageMode2] = useState<"URL" | "FILE">("URL");
+  const [qrManualMode, setQrManualMode] = useState<"URL" | "FILE">("URL");
+  const [qrVideoMode, setQrVideoMode] = useState<"URL" | "FILE">("URL");
 
   // Form Fields State
   const [formData, setFormData] = useState({
@@ -42,9 +44,10 @@ export default function AdminGamesPage() {
     description: "",
     category: "Estrategia",
     price: 3000,
-    stock: 2,
     imageUrl: "",
     imageUrl2: "",
+    qrManualUrl: "",
+    qrVideoUrl: "",
     minPlayers: 2,
     maxPlayers: 4,
     minAge: 8,
@@ -55,11 +58,16 @@ export default function AdminGamesPage() {
     tokens: 0,
     dice: 0,
     tiles: 0,
-    others: 0,
-    othersDescription: "",
   });
+  
+  const [otherComponents, setOtherComponents] = useState<{quantity: number, name: string}[]>([]);
+  const [newOtherQty, setNewOtherQty] = useState(1);
+  const [newOtherName, setNewOtherName] = useState("");
+
   const [selectedFile1, setSelectedFile1] = useState<File | null>(null);
   const [selectedFile2, setSelectedFile2] = useState<File | null>(null);
+  const [selectedQrManualFile, setSelectedQrManualFile] = useState<File | null>(null);
+  const [selectedQrVideoFile, setSelectedQrVideoFile] = useState<File | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -87,9 +95,10 @@ export default function AdminGamesPage() {
       description: "",
       category: "Estrategia",
       price: 3000,
-      stock: 2,
       imageUrl: "",
       imageUrl2: "",
+      qrManualUrl: "",
+      qrVideoUrl: "",
       minPlayers: 2,
       maxPlayers: 4,
       minAge: 8,
@@ -99,27 +108,47 @@ export default function AdminGamesPage() {
       tokens: 0,
       dice: 0,
       tiles: 0,
-      others: 0,
-      othersDescription: "",
     });
+    setOtherComponents([]);
     setSelectedFile1(null);
     setSelectedFile2(null);
+    setSelectedQrManualFile(null);
+    setSelectedQrVideoFile(null);
     setImageMode1("URL");
     setImageMode2("URL");
+    setQrManualMode("URL");
+    setQrVideoMode("URL");
     setErrorMessage("");
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (game: any) => {
     setEditingGame(game);
+    
+    // Parse others
+    let parsedOthers: {quantity: number, name: string}[] = [];
+    if (game.components?.othersDescription) {
+      try {
+        parsedOthers = JSON.parse(game.components.othersDescription);
+      } catch (e) {
+        // Fallback for old format
+        if (game.components.othersDescription.trim() !== "") {
+           parsedOthers = [{quantity: game.components.others || 1, name: game.components.othersDescription}];
+        }
+      }
+    } else if (game.components?.others > 0) {
+       parsedOthers = [{quantity: game.components.others, name: "Otros"}];
+    }
+
     setFormData({
       name: game.name || "",
       description: game.description || "",
       category: game.category || "",
       price: game.price || 0,
-      stock: game.stock || 0,
       imageUrl: game.image || "",
       imageUrl2: game.image2 || "",
+      qrManualUrl: game.qrManual || "",
+      qrVideoUrl: game.qrVideo || "",
       minPlayers: game.minPlayers || 1,
       maxPlayers: game.maxPlayers || 4,
       minAge: game.minAge || 8,
@@ -129,13 +158,16 @@ export default function AdminGamesPage() {
       tokens: game.components?.tokens || 0,
       dice: game.components?.dice || 0,
       tiles: game.components?.tiles || 0,
-      others: game.components?.others || 0,
-      othersDescription: game.components?.othersDescription || "",
     });
+    setOtherComponents(parsedOthers);
     setSelectedFile1(null);
     setSelectedFile2(null);
+    setSelectedQrManualFile(null);
+    setSelectedQrVideoFile(null);
     setImageMode1("URL");
     setImageMode2("URL");
+    setQrManualMode("URL");
+    setQrVideoMode("URL");
     setErrorMessage("");
     setIsModalOpen(true);
   };
@@ -161,7 +193,6 @@ export default function AdminGamesPage() {
     data.append("description", formData.description);
     data.append("category", formData.category);
     data.append("price", formData.price.toString());
-    data.append("stock", formData.stock.toString());
     data.append("minPlayers", formData.minPlayers.toString());
     data.append("maxPlayers", formData.maxPlayers.toString());
     data.append("minAge", formData.minAge.toString());
@@ -172,8 +203,11 @@ export default function AdminGamesPage() {
     data.append("tokens", formData.tokens.toString());
     data.append("dice", formData.dice.toString());
     data.append("tiles", formData.tiles.toString());
-    data.append("others", formData.others.toString());
-    data.append("othersDescription", formData.othersDescription);
+    
+    // Total others count and serialized description
+    const totalOthers = otherComponents.reduce((acc, curr) => acc + curr.quantity, 0);
+    data.append("others", totalOthers.toString());
+    data.append("othersDescription", JSON.stringify(otherComponents));
 
     // Imagen 1
     if (imageMode1 === "FILE" && selectedFile1) {
@@ -187,6 +221,20 @@ export default function AdminGamesPage() {
       data.append("imageFile2", selectedFile2);
     } else {
       data.append("imageUrl2", formData.imageUrl2 || "");
+    }
+
+    // QR Manual
+    if (qrManualMode === "FILE" && selectedQrManualFile) {
+      data.append("qrManualFile", selectedQrManualFile);
+    } else {
+      data.append("qrManualUrl", formData.qrManualUrl || "");
+    }
+
+    // QR Video
+    if (qrVideoMode === "FILE" && selectedQrVideoFile) {
+      data.append("qrVideoFile", selectedQrVideoFile);
+    } else {
+      data.append("qrVideoUrl", formData.qrVideoUrl || "");
     }
 
     const res = await saveGame(data, editingGame?.id);
@@ -291,7 +339,6 @@ export default function AdminGamesPage() {
                 <th className="p-3 text-center">Jugadores</th>
                 <th className="p-3 text-center">Duración</th>
                 <th className="p-3 text-right">Tarifa</th>
-                <th className="p-3 text-center">Stock</th>
                 <th className="p-3 text-center">Componentes</th>
                 <th className="p-3 text-right">Acciones</th>
               </tr>
@@ -333,16 +380,6 @@ export default function AdminGamesPage() {
                   </td>
                   <td className="p-3 text-right font-bold text-zinc-900">
                     ${game.price.toLocaleString("es-AR")}
-                  </td>
-                  <td className="p-3 text-center">
-                    <span
-                      className={`inline-block px-2 py-0.5 border text-[11px] ${game.stock > 0
-                        ? "bg-zinc-50 text-zinc-900 border-zinc-300"
-                        : "bg-red-50 text-red-700 border-red-200 font-bold"
-                        }`}
-                    >
-                      {game.stock} unid.
-                    </span>
                   </td>
                   <td className="p-3 text-center text-[10px] text-zinc-500">
                     {game.components ? (
@@ -426,7 +463,7 @@ export default function AdminGamesPage() {
                     Descripción Breve *
                   </label>
                   <textarea
-                    rows={2}
+                    rows={6}
                     required
                     value={formData.description || ""}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -463,19 +500,6 @@ export default function AdminGamesPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
-                    Stock Disponible *
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={formData.stock ?? 0}
-                    onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
-                    className="wire-input text-xs"
-                  />
-                </div>
 
                 <div>
                   <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
@@ -645,6 +669,110 @@ export default function AdminGamesPage() {
                     />
                   )}
                 </div>
+
+                {/* QR Manual */}
+                <div className="space-y-2 pt-3 border-t border-zinc-200">
+                  <div className="flex items-center justify-between">
+                     <span className="font-mono text-xs uppercase font-bold text-zinc-700">
+                      QR Manual (Opcional)
+                    </span>
+                    <div className="flex items-center gap-2 font-mono text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => setQrManualMode("URL")}
+                        className={`px-2 py-0.5 border ${qrManualMode === "URL"
+                          ? "bg-zinc-900 text-white border-zinc-900"
+                          : "bg-white text-zinc-600 border-zinc-300"
+                          }`}
+                      >
+                        <LinkIcon className="w-3 h-3 inline mr-1" />
+                        URL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQrManualMode("FILE")}
+                        className={`px-2 py-0.5 border ${qrManualMode === "FILE"
+                          ? "bg-zinc-900 text-white border-zinc-900"
+                          : "bg-white text-zinc-600 border-zinc-300"
+                          }`}
+                      >
+                        <Upload className="w-3 h-3 inline mr-1" />
+                        Archivo
+                      </button>
+                    </div>
+                  </div>
+
+                  {qrManualMode === "URL" ? (
+                    <input
+                      key="input-qrm-url"
+                      type="url"
+                      placeholder="https://..."
+                      value={formData.qrManualUrl || ""}
+                      onChange={(e) => setFormData({ ...formData, qrManualUrl: e.target.value })}
+                      className="wire-input text-xs"
+                    />
+                  ) : (
+                    <input
+                      key="input-qrm-file"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setSelectedQrManualFile(e.target.files?.[0] || null)}
+                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                    />
+                  )}
+                </div>
+
+                {/* QR Video */}
+                <div className="space-y-2 pt-3 border-t border-zinc-200">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs uppercase font-bold text-zinc-700">
+                      QR Video (Opcional)
+                    </span>
+                    <div className="flex items-center gap-2 font-mono text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => setQrVideoMode("URL")}
+                        className={`px-2 py-0.5 border ${qrVideoMode === "URL"
+                          ? "bg-zinc-900 text-white border-zinc-900"
+                          : "bg-white text-zinc-600 border-zinc-300"
+                          }`}
+                      >
+                        <LinkIcon className="w-3 h-3 inline mr-1" />
+                        URL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQrVideoMode("FILE")}
+                        className={`px-2 py-0.5 border ${qrVideoMode === "FILE"
+                          ? "bg-zinc-900 text-white border-zinc-900"
+                          : "bg-white text-zinc-600 border-zinc-300"
+                          }`}
+                      >
+                        <Upload className="w-3 h-3 inline mr-1" />
+                        Archivo
+                      </button>
+                    </div>
+                  </div>
+
+                  {qrVideoMode === "URL" ? (
+                    <input
+                      key="input-qrv-url"
+                      type="url"
+                      placeholder="https://..."
+                      value={formData.qrVideoUrl || ""}
+                      onChange={(e) => setFormData({ ...formData, qrVideoUrl: e.target.value })}
+                      className="wire-input text-xs"
+                    />
+                  ) : (
+                    <input
+                      key="input-qrv-file"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setSelectedQrVideoFile(e.target.files?.[0] || null)}
+                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                    />
+                  )}
+                </div>
               </div>
 
               {/* Desglose de Componentes Iniciales */}
@@ -652,7 +780,9 @@ export default function AdminGamesPage() {
                 <span className="font-mono text-xs uppercase font-bold text-zinc-700 block">
                   Inventario Inicial de Componentes (para Remito Digital)
                 </span>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                
+                {/* Standard components in a cleaner layout (max 2 lines) */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
                     <label className="text-[10px] font-mono text-zinc-500 uppercase block">Cartas</label>
                     <input
@@ -660,7 +790,7 @@ export default function AdminGamesPage() {
                       min="0"
                       value={formData.cards ?? 0}
                       onChange={(e) => setFormData({ ...formData, cards: parseInt(e.target.value) || 0 })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-full"
                     />
                   </div>
                   <div>
@@ -670,7 +800,7 @@ export default function AdminGamesPage() {
                       min="0"
                       value={formData.tokens ?? 0}
                       onChange={(e) => setFormData({ ...formData, tokens: parseInt(e.target.value) || 0 })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-full"
                     />
                   </div>
                   <div>
@@ -680,7 +810,7 @@ export default function AdminGamesPage() {
                       min="0"
                       value={formData.dice ?? 0}
                       onChange={(e) => setFormData({ ...formData, dice: parseInt(e.target.value) || 0 })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-full"
                     />
                   </div>
                   <div>
@@ -690,32 +820,74 @@ export default function AdminGamesPage() {
                       min="0"
                       value={formData.tiles ?? 0}
                       onChange={(e) => setFormData({ ...formData, tiles: parseInt(e.target.value) || 0 })}
-                      className="wire-input text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-mono text-zinc-500 uppercase block">Otros</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={formData.others ?? 0}
-                      onChange={(e) => setFormData({ ...formData, others: parseInt(e.target.value) || 0 })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-full"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-mono text-zinc-500 uppercase block mb-1">
-                    Descripción de otras piezas especiales:
+                {/* Dynamic Others Section */}
+                <div className="pt-3 border-t border-zinc-200">
+                  <label className="text-[10px] font-mono text-zinc-700 font-bold uppercase block mb-2">
+                    Otros Componentes
                   </label>
-                  <input
-                    type="text"
-                    value={formData.othersDescription || ""}
-                    onChange={(e) => setFormData({ ...formData, othersDescription: e.target.value })}
-                    placeholder="Ej: Reloj de arena, meeples de colores, torre de dados..."
-                    className="wire-input text-xs"
-                  />
+                  
+                  <div className="flex items-center gap-2 mb-3">
+                    <input
+                      type="number"
+                      min="1"
+                      value={newOtherQty}
+                      onChange={(e) => setNewOtherQty(parseInt(e.target.value) || 1)}
+                      className="wire-input text-xs w-20"
+                      placeholder="Cant."
+                    />
+                    <input
+                      type="text"
+                      value={newOtherName}
+                      onChange={(e) => setNewOtherName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && newOtherName.trim()) {
+                          e.preventDefault();
+                          setOtherComponents([...otherComponents, { quantity: newOtherQty, name: newOtherName.trim() }]);
+                          setNewOtherName("");
+                          setNewOtherQty(1);
+                        }
+                      }}
+                      className="wire-input text-xs flex-1"
+                      placeholder="Descripción (ej. Tablero, Reloj de arena...)"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newOtherName.trim()) {
+                          setOtherComponents([...otherComponents, { quantity: newOtherQty, name: newOtherName.trim() }]);
+                          setNewOtherName("");
+                          setNewOtherQty(1);
+                        }
+                      }}
+                      className="px-3 py-2 bg-zinc-900 text-white font-mono hover:bg-zinc-800 transition rounded-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {otherComponents.length > 0 && (
+                    <div className="space-y-1.5">
+                      {otherComponents.map((comp, idx) => (
+                        <div key={idx} className="flex items-center justify-between bg-white border border-zinc-200 px-3 py-1.5 text-xs font-mono">
+                          <span>
+                            <span className="font-bold text-zinc-900">{comp.quantity}</span> x {comp.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setOtherComponents(otherComponents.filter((_, i) => i !== idx))}
+                            className="text-zinc-400 hover:text-red-600 transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

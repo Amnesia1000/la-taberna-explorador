@@ -48,7 +48,7 @@ export async function saveGame(formData: FormData, id?: string) {
     const description = formData.get("description") as string;
     const category = formData.get("category") as string;
     const price = parseFloat(formData.get("price") as string);
-    const stock = parseInt(formData.get("stock") as string);
+    const stock = 1; // Default stock to 1 as per requirements
     const minPlayers = parseInt(formData.get("minPlayers") as string);
     const maxPlayers = parseInt(formData.get("maxPlayers") as string);
     const minAge = parseInt(formData.get("minAge") as string);
@@ -88,6 +88,28 @@ export async function saveGame(formData: FormData, id?: string) {
       finalImageUrl2 = blob2.url;
     }
 
+    // PROCESAR QR MANUAL
+    let finalQrManualUrl = (formData.get("qrManualUrl") as string) || "";
+    const qrManualFile = formData.get("qrManualFile") as File | null;
+
+    if (qrManualFile && qrManualFile.size > 0) {
+      const blob = await put(`games/${Date.now()}-qrm-${qrManualFile.name}`, qrManualFile, {
+        access: "public",
+      });
+      finalQrManualUrl = blob.url;
+    }
+
+    // PROCESAR QR VIDEO
+    let finalQrVideoUrl = (formData.get("qrVideoUrl") as string) || "";
+    const qrVideoFile = formData.get("qrVideoFile") as File | null;
+
+    if (qrVideoFile && qrVideoFile.size > 0) {
+      const blob = await put(`games/${Date.now()}-qrv-${qrVideoFile.name}`, qrVideoFile, {
+        access: "public",
+      });
+      finalQrVideoUrl = blob.url;
+    }
+
     const gameData = {
       name,
       description,
@@ -101,6 +123,8 @@ export async function saveGame(formData: FormData, id?: string) {
       maxPlaytime,
       image: finalImageUrl,
       image2: finalImageUrl2,
+      qrManual: finalQrManualUrl,
+      qrVideo: finalQrVideoUrl,
     };
 
     const componentsData = {

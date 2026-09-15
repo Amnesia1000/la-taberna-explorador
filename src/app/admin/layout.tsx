@@ -19,7 +19,7 @@ import { useState } from "react";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/admin/games", label: "Juegos (CRUD)", icon: Dices },
+  { href: "/admin/games", label: "Juegos", icon: Dices },
   { href: "/admin/components", label: "Componentes & Remito", icon: Layers },
   { href: "/admin/rentals", label: "Alquileres", icon: Repeat },
   { href: "/admin/reservations", label: "Reservas", icon: CalendarCheck },
@@ -39,8 +39,8 @@ export default function AdminLayout({
       {/* Mobile Top Bar */}
       <div className="md:hidden border-b border-[#dfcfb2] bg-[#24130a] px-4 h-14 flex items-center justify-between text-[#fef3c7]">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#b45309] text-white flex items-center justify-center font-tavern text-xs font-bold rounded-sm">
-            <Compass className="w-4 h-4" />
+          <div className="w-7 h-7 flex items-center justify-center rounded-sm">
+            <img src="/Logo.png" alt="Logo" className="w-6 h-6 object-contain" />
           </div>
           <span className="font-tavern text-xs font-bold uppercase tracking-wider text-[#fef3c7]">
             GREMIO // PANEL DE GESTIÓN
@@ -58,16 +58,15 @@ export default function AdminLayout({
 
       {/* Sidebar Navigation - Dark Oak Guild Style */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#20120a] border-r border-[#3d2215] flex flex-col justify-between transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:h-screen text-[#fef3c7] ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#20120a] border-r border-[#3d2215] flex flex-col justify-between transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:h-screen text-[#fef3c7] ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex flex-col">
           {/* Header */}
           <div className="p-5 border-b border-[#3d2215] bg-[#180d07]">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-gradient-to-b from-[#b45309] to-[#78350f] text-white flex items-center justify-center font-tavern text-sm font-bold rounded-sm shadow-md">
-                <Compass className="w-5 h-5 text-[#fef3c7]" />
+              <div className="w-9 h-9 flex items-center justify-center rounded-sm">
+                <img src="/Logo.png" alt="Logo" className="w-8 h-8 object-contain opacity-90" />
               </div>
               <div>
                 <h2 className="font-tavern text-xs font-bold uppercase tracking-wider text-[#fef3c7]">
@@ -97,11 +96,10 @@ export default function AdminLayout({
                   key={item.href}
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 text-xs font-tavern uppercase tracking-wider border transition-all rounded-sm ${
-                    isActive
+                  className={`flex items-center gap-3 px-3.5 py-2.5 text-xs font-tavern uppercase tracking-wider border transition-all rounded-sm ${isActive
                       ? "bg-gradient-to-r from-[#b45309] to-[#92400e] text-white border-[#d97706] font-bold shadow-sm"
                       : "text-[#d1baa5] border-transparent hover:bg-[#2e1a0f] hover:text-[#ffffff]"
-                  }`}
+                    }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? "text-[#fef08a]" : "text-[#b45309]"}`} />
                   <span>{item.label}</span>

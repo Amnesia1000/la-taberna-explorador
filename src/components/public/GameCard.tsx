@@ -118,7 +118,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
             <div className="flex flex-col items-center gap-1">
               <Users className="w-5 h-5 text-[#3b1a08]" />
               <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
-                {game.minPlayers}-{game.maxPlayers}
+                {game.minPlayers === game.maxPlayers ? game.minPlayers : `${game.minPlayers}-${game.maxPlayers}`}
               </span>
             </div>
             <div className="flex flex-col items-center gap-1">

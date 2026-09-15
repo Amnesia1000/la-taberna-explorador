@@ -15,6 +15,8 @@ export default function CatalogPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("TODOS");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [playerFilter, setPlayerFilter] = useState<string>("ALL");
+  const [ageFilter, setAgeFilter] = useState<string>("TODAS");
+  const [priceFilter, setPriceFilter] = useState<string>("TODOS");
   const [selectedGame, setSelectedGame] = useState<GameWithComponents | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -57,10 +59,20 @@ export default function CatalogPage() {
         if (playerFilter === "2P" && (game.minPlayers > 2 || game.maxPlayers < 2)) return false;
         if (playerFilter === "PARTY" && game.maxPlayers < 5) return false;
 
+        // Age filter
+        if (ageFilter === "+6" && game.minAge < 6) return false;
+        if (ageFilter === "+10" && game.minAge < 10) return false;
+        if (ageFilter === "+14" && game.minAge < 14) return false;
+
+        // Price filter
+        if (priceFilter === "$" && game.price > 6000) return false;
+        if (priceFilter === "$$" && (game.price < 7000 || game.price > 15000)) return false;
+        if (priceFilter === "$$$" && game.price <= 15000) return false;
+
         return true;
       })
       .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
-  }, [games, selectedCategory, searchTerm, playerFilter]);
+  }, [games, selectedCategory, searchTerm, playerFilter, ageFilter, priceFilter]);
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent">
@@ -75,9 +87,10 @@ export default function CatalogPage() {
           <div className="absolute bottom-2 left-2 w-3 h-3 rounded-full bg-gradient-to-br from-[#ca8a04] to-[#451a03] border border-[#1c0d06] shadow-sm"></div>
           <div className="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-gradient-to-br from-[#ca8a04] to-[#451a03] border border-[#1c0d06] shadow-sm"></div>
 
-          {/* Watermark Compass */}
+          {/* Watermark Compass (Now Logo) */}
           <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
-            <Compass className="w-72 h-72 text-[#3d2011]" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/Logo.png" alt="Logo" className="w-72 h-72 opacity-50 grayscale" />
           </div>
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -110,16 +123,16 @@ export default function CatalogPage() {
 
         {/* Tavern Keeper's Slate Bar (Filtros y Búsqueda) */}
         <section className="wood-beam p-3 sm:p-5 mb-6 sm:mb-8 space-y-3 sm:space-y-4 rounded-sm shadow-xl text-[#fef3c7] border-2 border-[#8c5828]">
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
             {/* Search Input */}
-            <div className="relative w-full sm:w-72">
+            <div className="relative w-full lg:w-72 shrink-0">
               <Search className="w-4 h-4 text-[#ca8a04] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar juego o crónica..."
-                className="tavern-input !pl-9 pr-8 py-2 text-xs font-serif rounded-sm"
+                className="tavern-input !pl-9 pr-8 py-2 text-xs font-serif rounded-sm w-full"
               />
               {searchTerm && (
                 <button
@@ -132,63 +145,76 @@ export default function CatalogPage() {
               )}
             </div>
 
-            {/* Quick Player Filter */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
-              <span className="text-xs font-tavern text-[#e2b17b] uppercase whitespace-nowrap mr-1 font-bold flex items-center gap-1 shrink-0">
-                <span>⚔</span> Jugadores:
-              </span>
-              {[
-                { id: "ALL", label: "Todos" },
-                { id: "SOLO", label: "1 Jugador" },
-                { id: "2P", label: "2 Jugadores" },
-                { id: "PARTY", label: "5+ Fiesta" },
-              ].map((f) => (
-                <button
-                  key={f.id}
-                  onClick={() => setPlayerFilter(f.id)}
-                  className={`px-3 py-1.5 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${playerFilter === f.id
-                    ? "bg-gradient-to-r from-[#b45309] to-[#92400e] text-white border-[#fde047] font-bold shadow-md"
-                    : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
-                    }`}
+            {/* Select Filters Group */}
+            <div className="flex flex-wrap items-center gap-2 flex-1 lg:justify-end">
+              {/* Category */}
+              <div className="flex items-center gap-1 bg-[#29170e] border border-[#5a3219] rounded-sm pr-1">
+                <span className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 flex items-center gap-1 font-bold shrink-0">
+                  <Filter className="w-3 h-3 text-[#f59e0b]" /> Categoría:
+                </span>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="bg-transparent text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer"
                 >
-                  {f.label}
-                </button>
-              ))}
+                  <option value="TODOS">TODOS ({games.length})</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Players */}
+              <div className="flex items-center gap-1 bg-[#29170e] border border-[#5a3219] rounded-sm pr-1">
+                <span className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 flex items-center gap-1 font-bold shrink-0">
+                  <span>⚔</span> Jugadores:
+                </span>
+                <select
+                  value={playerFilter}
+                  onChange={(e) => setPlayerFilter(e.target.value)}
+                  className="bg-transparent text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer"
+                >
+                  <option value="ALL">Todos</option>
+                  <option value="SOLO">1 Jugador</option>
+                  <option value="2P">2 Jugadores</option>
+                  <option value="PARTY">5+ Fiesta</option>
+                </select>
+              </div>
+
+              {/* Age */}
+              <div className="flex items-center gap-1 bg-[#29170e] border border-[#5a3219] rounded-sm pr-1">
+                <span className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 font-bold shrink-0">
+                  Edad:
+                </span>
+                <select
+                  value={ageFilter}
+                  onChange={(e) => setAgeFilter(e.target.value)}
+                  className="bg-transparent text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer"
+                >
+                  <option value="TODAS">Todas</option>
+                  <option value="+6">+6 Años</option>
+                  <option value="+10">+10 Años</option>
+                  <option value="+14">+14 Años</option>
+                </select>
+              </div>
+
+              {/* Price */}
+              <div className="flex items-center gap-1 bg-[#29170e] border border-[#5a3219] rounded-sm pr-1">
+                <span className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 font-bold shrink-0">
+                  Precio:
+                </span>
+                <select
+                  value={priceFilter}
+                  onChange={(e) => setPriceFilter(e.target.value)}
+                  className="bg-transparent text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer"
+                >
+                  <option value="TODOS">Todos</option>
+                  <option value="$">$ (hasta 6k)</option>
+                  <option value="$$">$$ (7k a 15k)</option>
+                  <option value="$$$">$$$ (+15k)</option>
+                </select>
+              </div>
             </div>
-          </div>
-
-          {/* Categories Pill Bar */}
-          <div className="pt-3 border-t border-[#4d2814] flex items-center gap-2 overflow-x-auto pb-1">
-            <span className="text-xs font-tavern text-[#e2b17b] uppercase whitespace-nowrap flex items-center gap-1.5 font-bold">
-              <Filter className="w-3.5 h-3.5 text-[#f59e0b]" />
-              Categoría:
-            </span>
-
-            <button
-              onClick={() => setSelectedCategory("TODOS")}
-              className={`px-3.5 py-1 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${selectedCategory === "TODOS"
-                ? "bg-[#b45309] text-white border-[#fde047] font-bold shadow-md"
-                : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
-                }`}
-            >
-              TODOS ({games.length})
-            </button>
-
-            {categories.map((cat) => {
-              const count = games.filter((g) => g.category === cat).length;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-1 text-xs font-tavern uppercase whitespace-nowrap border transition rounded-sm ${selectedCategory === cat
-                    ? "bg-[#b45309] text-white border-[#fde047] font-bold shadow-md"
-                    : "bg-[#29170e] text-[#d6b080] border-[#5a3219] hover:border-[#b45309] hover:text-white"
-                    }`}
-                >
-                  {cat} ({count})
-                </button>
-              );
-            })}
           </div>
         </section>
 
@@ -212,6 +238,8 @@ export default function CatalogPage() {
                 setSelectedCategory("TODOS");
                 setSearchTerm("");
                 setPlayerFilter("ALL");
+                setAgeFilter("TODAS");
+                setPriceFilter("TODOS");
               }}
               className="mt-4 tavern-btn-medieval rounded-sm"
             >
@@ -241,7 +269,7 @@ export default function CatalogPage() {
       <footer className="wood-beam border-t-4 border-[#8c5828] mt-16 py-8 text-center text-xs font-serif text-[#d6b080]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 font-tavern text-sm text-[#fffdfa] font-bold">
-            <Compass className="w-4 h-4 text-[#f59e0b]" />
+            <img src="/Logo.png" alt="Logo" className="w-5 h-5 opacity-90" />
             <span>LA TABERNA DEL EXPLORADOR</span>
           </div>
           <span className="text-xs text-[#e2b17b] font-serif">

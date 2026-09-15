@@ -36,14 +36,11 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
         {/* Modal Header - Heavy Timber Header */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 wood-beam border-b-2 border-[#8c5828] flex items-center justify-between text-[#fef3c7] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-sm bg-gradient-to-br from-[#ca8a04] to-[#78350f] text-[#2c1409] flex items-center justify-center font-bold text-xs shadow-md">
-              <Compass className="w-4 h-4 text-[#1a0a03]" />
+            <div className="w-8 h-8 rounded-sm flex items-center justify-center p-0.5">
+              <img src="/Logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <span className="font-tavern text-xs uppercase bg-[#4a2612] text-[#fef08a] border border-[#a16207] px-2.5 py-0.5 font-bold tracking-wider rounded-sm">
               {game.category}
-            </span>
-            <span className="font-serif text-xs text-[#e2b17b]">
-              Folio #{game.id.substring(0, 8)}
             </span>
           </div>
 
@@ -129,7 +126,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                 <div className="border-r border-[#d4be95] flex flex-col items-center justify-center gap-1">
                   <Users className="w-6 h-6 text-[#3b1a08]" />
                   <span className="font-extrabold text-[#2d1409] text-base leading-none">
-                    {game.minPlayers}-{game.maxPlayers}
+                    {game.minPlayers === game.maxPlayers ? game.minPlayers : `${game.minPlayers}-${game.maxPlayers}`}
                   </span>
                 </div>
                 <div className="border-r border-[#d4be95] flex flex-col items-center justify-center gap-1">
