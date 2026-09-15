@@ -28,18 +28,15 @@ export default function TavernParallaxBackground() {
       aria-hidden="true"
     >
       <div
-        className="absolute inset-x-0 top-0 w-full"
+        className="absolute inset-0 w-full h-full"
         style={{
-          transform: `translate3d(0, -${offsetY}px, 0)`,
-          willChange: "transform",
+          backgroundImage: "url('/tavern-wall.jpg')",
+          backgroundRepeat: "repeat-y",
+          backgroundSize: "100% auto",
+          backgroundPosition: `center -${offsetY}px`,
+          willChange: "background-position",
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/tavern-wall.jpg"
-          alt=""
-          className="w-full h-auto block object-cover"
-        />
         {/* Capa de degradado oscuro sobre la imagen para mantener la lectura del pergamino */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#140b06]/45 via-[#140b06]/15 to-[#120905]/65 w-full h-full" />
       </div>
