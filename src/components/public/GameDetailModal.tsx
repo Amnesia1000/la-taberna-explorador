@@ -30,8 +30,8 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
   );
   const totalPrice = game.price + expansionsTotalPrice;
 
-  // Formato del mensaje de WhatsApp para la Taberna
-  const phone = "5491144556677";
+  // Formato del mensaje de WhatsApp para la Taberna (Argentina: +54 9 261 248-0816)
+  const phone = "5492612480816";
   const expText =
     selectedExpList.length > 0
       ? ` junto con la(s) expansión(es): ${selectedExpList.map((e) => e.name).join(", ")}`

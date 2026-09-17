@@ -14,6 +14,65 @@ interface RemitoModalProps {
   onClose: () => void;
 }
 
+async function getBase64FromUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function getCompressedQrBase64(rawUrl?: string | null): Promise<string | null> {
+  if (!rawUrl || !rawUrl.trim()) return null;
+  const target = rawUrl.trim();
+
+  let sourceDataUrl: string | null = null;
+
+  if (target.startsWith("data:image")) {
+    sourceDataUrl = target;
+  } else {
+    // Intentar obtener la imagen original directa por si es un QR personalizado subido por el usuario
+    const directBase64 = await getBase64FromUrl(target);
+    if (directBase64 && directBase64.startsWith("data:image")) {
+      sourceDataUrl = directBase64;
+    } else {
+      // Fallback: Generar QR de alta resolución si es una URL web
+      sourceDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(target)}`;
+    }
+  }
+
+  // Redimensionar a 600x600 a alta fidelidad (preserva logos, colores y detalles personalizados)
+  // exportando a JPEG 0.90 para lograr un peso controlado de ~200KB - 400KB
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 600;
+      canvas.height = 600;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, 600, 600);
+        ctx.drawImage(img, 0, 0, 600, 600);
+        resolve(canvas.toDataURL("image/jpeg", 0.90));
+      } else {
+        resolve(sourceDataUrl);
+      }
+    };
+    img.onerror = () => resolve(sourceDataUrl);
+    img.src = sourceDataUrl;
+  });
+}
+
 export default function RemitoModal({
   games,
   initialGameId,
@@ -130,6 +189,12 @@ export default function RemitoModal({
         }
       }
 
+      // Fetch QRs para Manual y Video
+      const [manualQrBase64, videoQrBase64] = await Promise.all([
+        getCompressedQrBase64(selectedGame.qrManual),
+        getCompressedQrBase64(selectedGame.qrVideo),
+      ]);
+
       // Expansiones seleccionadas
       const selectedExpObjects = (selectedGame.expansions || []).filter((exp) =>
         selectedExpansionsForRemito.includes(exp.id)
@@ -138,47 +203,49 @@ export default function RemitoModal({
       // Signature data URL
       const signatureImage = sigCanvasRef.current?.toDataURL("image/png");
 
-      // Initialize jsPDF (Portrait, mm, A4: 210 x 297 mm)
+      // Initialize jsPDF with compression enabled
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
+        compress: true,
       });
 
       const remitoCode = `REM-${Date.now().toString().slice(-6)}`;
 
       // 1. Header (Wireframe clean high-contrast)
       doc.setFillColor(15, 23, 42); // slate-900
-      doc.rect(15, 15, 180, 22, "F");
+      doc.rect(15, 12, 180, 18, "F");
 
       doc.setTextColor(255, 255, 255);
       doc.setFont("courier", "bold");
-      doc.setFontSize(14);
-      doc.text("TABERNA // REMITO DE ENTREGA DIGITAL", 20, 24);
+      doc.setFontSize(13);
+      doc.text("TABERNA // REMITO DE ENTREGA DIGITAL", 20, 20);
 
-      doc.setFontSize(9);
+      doc.setFontSize(8.5);
       doc.setFont("courier", "normal");
-      doc.text(`FOLIO: ${remitoCode} | FECHA: ${deliveryDate}`, 20, 31);
+      doc.text(`FOLIO: ${remitoCode} | FECHA: ${deliveryDate}`, 20, 26);
 
-      // 2. Client & Rental Details Box
+      // 2. Client & Rental Details Box (Compact 2-line layout)
       doc.setTextColor(15, 23, 42);
       doc.setDrawColor(203, 213, 225);
-      doc.rect(15, 42, 180, 42);
+      doc.rect(15, 33, 180, 22);
 
       doc.setFont("courier", "bold");
-      doc.setFontSize(10);
-      doc.text("DATOS DEL CLIENTE Y PERÍODO DE ALQUILER", 20, 48);
+      doc.setFontSize(9);
+      doc.text("DATOS DEL CLIENTE Y PERÍODO DE ALQUILER", 20, 38);
 
       doc.setFont("courier", "normal");
-      doc.setFontSize(9);
-      doc.text(`Cliente: ${clientData.firstName} ${clientData.lastName} ${clientData.dni ? `(DNI: ${clientData.dni})` : ""}`, 20, 56);
-      doc.text(`Teléfono: ${clientData.phone || "No especificado"} | Email: ${clientData.email || "No especificado"}`, 20, 63);
-      doc.text(`Domicilio: ${clientData.address || "No especificado"}`, 20, 70);
-      doc.text(`Fecha de Retiro: ${deliveryDate} | Fecha Pactada de Devolución: ${returnDate}`, 20, 77);
+      doc.setFontSize(8);
+      const clientNamePhone = `Cliente: ${clientData.firstName} ${clientData.lastName} ${clientData.dni ? `(DNI: ${clientData.dni})` : ""} | Teléfono: ${clientData.phone || "No especificado"}`;
+      doc.text(clientNamePhone, 20, 44);
+
+      const datesStr = `Fecha Retiro: ${deliveryDate} | Fecha Pactada Devolución: ${returnDate}`;
+      doc.text(datesStr, 20, 50);
 
       // 3. Game & Components Inventory Box
-      const inventoryBoxY = 89;
-      let currentY = inventoryBoxY + 7;
+      const inventoryBoxY = 58;
+      let currentY = inventoryBoxY + 6;
 
       const expNamesStr = selectedExpObjects.map((e) => e.name).join(", ");
       const headerTitle = selectedExpObjects.length > 0
@@ -186,37 +253,39 @@ export default function RemitoModal({
         : `JUEGO ENTREGADO: ${selectedGame.name.toUpperCase()}`;
 
       doc.setFont("courier", "bold");
-      doc.setFontSize(9.5);
+      doc.setFontSize(9);
       doc.text(headerTitle, 20, currentY);
       
-      currentY += 6;
+      currentY += 5;
       doc.setFont("courier", "normal");
-      doc.setFontSize(9);
+      doc.setFontSize(8);
       doc.text(`Categoría: ${selectedGame.category} | Tarifa Base: $${selectedGame.price.toLocaleString("es-AR")}`, 20, currentY);
 
-      currentY += 4;
+      currentY += 3.5;
       doc.line(20, currentY, 190, currentY);
       
-      currentY += 5;
+      currentY += 4.5;
       doc.setFont("courier", "bold");
+      doc.setFontSize(8.5);
       doc.text("DETALLE DE PIEZAS VERIFICADAS AL MOMENTO DE LA ENTREGA:", 20, currentY);
 
       const comp = selectedGame.components;
       doc.setFont("courier", "normal");
-      currentY += 7;
+      doc.setFontSize(8);
+      currentY += 6;
       doc.text(`- Cartas / Mazos:  ${comp?.cards ?? 0} unid.`, 25, currentY);
       doc.text(`- Fichas / Tokens: ${comp?.tokens ?? 0} unid.`, 110, currentY);
 
-      currentY += 6;
+      currentY += 5;
       doc.text(`- Dados:           ${comp?.dice ?? 0} unid.`, 25, currentY);
       doc.text(`- Losetas / Tabl.: ${comp?.tiles ?? 0} unid.`, 110, currentY);
 
-      currentY += 6;
+      currentY += 5;
       doc.text(`- Otras piezas:    ${comp?.others ?? 0} unid.`, 25, currentY);
       
       const formattedOthers = formatOthersDescription(comp?.othersDescription);
       if (formattedOthers) {
-        currentY += 6;
+        currentY += 5;
         doc.text(`  Detalle: ${formattedOthers}`, 25, currentY);
       }
 
@@ -224,31 +293,66 @@ export default function RemitoModal({
         selectedExpObjects.forEach((exp) => {
           const expComp = exp.components;
           const expOthers = formatOthersDescription(expComp?.othersDescription);
-          currentY += 6;
+          currentY += 5;
           doc.setFont("courier", "bold");
+          doc.setFontSize(8);
           doc.text(`* EXPANSIÓN: ${exp.name.toUpperCase()}`, 25, currentY);
-          currentY += 4.5;
+          currentY += 4;
           doc.setFont("courier", "normal");
+          doc.setFontSize(7.5);
           doc.text(`  Cartas: ${expComp?.cards ?? 0} | Fichas: ${expComp?.tokens ?? 0} | Dados: ${expComp?.dice ?? 0} | Losetas: ${expComp?.tiles ?? 0} ${expOthers ? `| Detalle: ${expOthers}` : ""}`, 25, currentY);
         });
       }
 
-      currentY += 6;
-      doc.setFontSize(8);
+      currentY += 5;
+      doc.setFontSize(7.5);
       doc.text(`Obs: ${notes}`, 20, currentY);
 
-      currentY += 4;
-      const inventoryBoxHeight = Math.max(55, currentY - inventoryBoxY);
+      currentY += 3.5;
+      const inventoryBoxHeight = Math.max(45, currentY - inventoryBoxY);
       doc.rect(15, inventoryBoxY, 180, inventoryBoxHeight);
 
+      // 3.5. QR Codes Box (Manual & Video Tutorial - Larger 32x32mm QRs)
+      let qrBoxHeight = 0;
+      if (manualQrBase64 || videoQrBase64) {
+        const qrBoxY = inventoryBoxY + inventoryBoxHeight + 4;
+        qrBoxHeight = 44;
+        doc.rect(15, qrBoxY, 180, qrBoxHeight);
+        doc.setFont("courier", "bold");
+        doc.setFontSize(8.5);
+        doc.text("CÓDIGOS QR DE ACCESO A REGLAMENTO Y VIDEO TUTORIAL:", 20, qrBoxY + 6);
+
+        let qrX = 20;
+        if (manualQrBase64) {
+          doc.addImage(manualQrBase64, "JPEG", qrX, qrBoxY + 9, 31, 31, undefined, "FAST");
+          doc.setFont("courier", "bold");
+          doc.setFontSize(8.5);
+          doc.text("QR MANUAL / REGLAS", qrX + 34, qrBoxY + 20);
+          doc.setFont("courier", "normal");
+          doc.setFontSize(7.5);
+          doc.text("Escanear para ver PDF de reglas", qrX + 34, qrBoxY + 26);
+          qrX += 88;
+        }
+
+        if (videoQrBase64) {
+          doc.addImage(videoQrBase64, "JPEG", qrX, qrBoxY + 9, 31, 31, undefined, "FAST");
+          doc.setFont("courier", "bold");
+          doc.setFontSize(8.5);
+          doc.text("QR VIDEO TUTORIAL", qrX + 34, qrBoxY + 20);
+          doc.setFont("courier", "normal");
+          doc.setFontSize(7.5);
+          doc.text("Escanear para ver cómo jugar", qrX + 34, qrBoxY + 26);
+        }
+      }
+
       // 4. Responsibility Terms
-      const termsBoxY = inventoryBoxY + inventoryBoxHeight + 4;
-      doc.rect(15, termsBoxY, 180, 26);
+      const termsBoxY = inventoryBoxY + inventoryBoxHeight + (qrBoxHeight > 0 ? qrBoxHeight + 8 : 4);
+      doc.rect(15, termsBoxY, 180, 24);
       doc.setFont("courier", "bold");
       doc.setFontSize(8);
       doc.text("TÉRMINOS DE CONFORMIDAD Y CUSTODIA:", 20, termsBoxY + 5);
       doc.setFont("courier", "normal");
-      doc.setFontSize(7.5);
+      doc.setFontSize(7);
       const terms = [
         "1. El cliente declara haber verificado e inspeccionado el juego de mesa detallado,",
         "   recibiéndolo completo con el inventario de piezas indicado y en perfectas condiciones.",
@@ -256,28 +360,28 @@ export default function RemitoModal({
         "3. La pérdida o rotura de componentes conllevará el cobro del costo de reposición.",
       ];
       terms.forEach((t, i) => {
-        doc.text(t, 20, termsBoxY + 10 + i * 4.2);
+        doc.text(t, 20, termsBoxY + 9.5 + i * 4);
       });
 
       // 5. Signature Section
-      const sigBoxY = termsBoxY + 30;
-      doc.rect(15, sigBoxY, 180, 44);
+      const sigBoxY = termsBoxY + 28;
+      doc.rect(15, sigBoxY, 180, 42);
       doc.setFont("courier", "bold");
-      doc.setFontSize(9);
-      doc.text("CONFORMIDAD Y FIRMA DIGITAL DEL CLIENTE:", 20, sigBoxY + 6);
+      doc.setFontSize(8.5);
+      doc.text("CONFORMIDAD Y FIRMA DIGITAL DEL CLIENTE:", 20, sigBoxY + 5);
 
       if (signatureImage) {
         // Embed the image on the PDF
-        doc.addImage(signatureImage, "PNG", 30, sigBoxY + 8, 60, 23);
+        doc.addImage(signatureImage, "PNG", 30, sigBoxY + 7, 55, 22);
       }
 
-      doc.line(25, sigBoxY + 34, 95, sigBoxY + 34);
+      doc.line(25, sigBoxY + 31, 95, sigBoxY + 31);
       doc.setFont("courier", "normal");
-      doc.setFontSize(8);
-      doc.text("Firma del Cliente Receptor", 35, sigBoxY + 39);
+      doc.setFontSize(7.5);
+      doc.text("Firma del Cliente Receptor", 35, sigBoxY + 36);
 
-      doc.line(115, sigBoxY + 34, 185, sigBoxY + 34);
-      doc.text("Firma y Sello Taberna", 130, sigBoxY + 39);
+      doc.line(115, sigBoxY + 31, 185, sigBoxY + 31);
+      doc.text("Firma y Sello Taberna", 130, sigBoxY + 36);
 
       // Footer
       doc.setFontSize(7);
