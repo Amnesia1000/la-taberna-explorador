@@ -36,7 +36,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
     selectedExpList.length > 0
       ? ` junto con la(s) expansión(es): ${selectedExpList.map((e) => e.name).join(", ")}`
       : "";
-  const message = `¡Saludos Tabernero! Deseo alquilar el juego "${game.name}" (${game.category})${expText} por un valor total de $${totalPrice.toLocaleString(
+  const message = `¡Saludos Tabernero! Deseo alquilar el juego "${game.name}" ${expText} por un valor total de $${totalPrice.toLocaleString(
     "es-AR"
   )} en La Taberna del Explorador. ¿Hay ejemplares disponibles en el inventario?`;
   const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
