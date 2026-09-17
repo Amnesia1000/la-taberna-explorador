@@ -9,6 +9,7 @@ export async function getGames() {
     const games = await prisma.game.findMany({
       include: {
         components: true,
+        expansions: true,
       },
       orderBy: {
         createdAt: "desc",

@@ -35,11 +35,14 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
     <button
       type="button"
       onClick={() => onSelect(game)}
-      className="group relative w-full text-left focus:outline-none focus:ring-2 focus:ring-[#b45309] rounded-sm"
+      className="group relative w-full text-left focus:outline-none focus:ring-2 focus:ring-[#b45309] rounded-sm transition-all duration-300 hover:-translate-y-1.5"
       aria-label={`Ver ficha de ${game.name}`}
     >
       {/* Ficha frame — aspect ratio ~4:5 matching the PNG */}
-      <div className="relative w-full" style={{ aspectRatio: "4/5" }}>
+      <div
+        className="relative w-full transition-all duration-300 drop-shadow-[0_10px_16px_rgba(0,0,0,0.90)] group-hover:drop-shadow-[0_18px_24px_rgba(0,0,0,0.90)]"
+        style={{ aspectRatio: "4/5" }}
+      >
 
         {/* The ficha PNG frame on top (z-10) */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -49,6 +52,17 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
           aria-hidden="true"
           className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-10"
         />
+
+        {/* ── EXPANSIONES DISPONIBLES ── */}
+        {((game.expansions && game.expansions.length > 0) || game.hasExpansions || (game._count?.expansions ?? 0) > 0) && (
+          <div className="absolute z-30 pointer-events-none" style={{ top: "-1%", right: "30%", width: "35%" }}>
+            <img
+              src="/disponible.png"
+              alt="Expansiones disponibles"
+              className="w-full h-auto drop-shadow-[0_8px_12px_rgba(0,0,0,0.7)] group-hover:drop-shadow-[0_10px_16px_rgba(0,0,0,0.85)] transition-all duration-300 group-hover:scale-105"
+            />
+          </div>
+        )}
 
         {/* ── ZONA IMAGEN ── */}
         <div

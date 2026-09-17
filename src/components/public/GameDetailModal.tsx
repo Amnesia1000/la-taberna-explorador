@@ -1,6 +1,7 @@
 "use client";
 
-import { X, Users, Clock, Baby, MessageSquare, Compass } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Users, Clock, Baby, MessageSquare, Check } from "lucide-react";
 import { GameWithComponents } from "@/types";
 
 interface GameDetailModalProps {
@@ -9,13 +10,35 @@ interface GameDetailModalProps {
 }
 
 export default function GameDetailModal({ game, onClose }: GameDetailModalProps) {
+  const [selectedExpansions, setSelectedExpansions] = useState<string[]>([]);
+
+  useEffect(() => {
+    setSelectedExpansions([]);
+  }, [game?.id]);
+
   if (!game) return null;
 
   const isAvailable = game.stock > 0;
 
+  // Cálculo de precio con expansiones seleccionadas
+  const selectedExpList = (game.expansions || []).filter((exp) =>
+    selectedExpansions.includes(exp.id)
+  );
+  const expansionsTotalPrice = selectedExpList.reduce(
+    (sum, exp) => sum + exp.price,
+    0
+  );
+  const totalPrice = game.price + expansionsTotalPrice;
+
   // Formato del mensaje de WhatsApp para la Taberna
   const phone = "5491144556677";
-  const message = `¡Saludos Tabernero! Deseo alquilar el juego "${game.name}" (${game.category}) en La Taberna del Explorador. ¿Hay ejemplares disponibles en el inventario?`;
+  const expText =
+    selectedExpList.length > 0
+      ? ` junto con la(s) expansión(es): ${selectedExpList.map((e) => e.name).join(", ")}`
+      : "";
+  const message = `¡Saludos Tabernero! Deseo alquilar el juego "${game.name}" (${game.category})${expText} por un valor total de $${totalPrice.toLocaleString(
+    "es-AR"
+  )} en La Taberna del Explorador. ¿Hay ejemplares disponibles en el inventario?`;
   const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
   // Formato dinámico de duración (ej: 20-30m o 30m)
@@ -57,35 +80,104 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
         {/* Modal Body - Parchment Folio */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-gradient-to-b from-[#fffefc] via-[#fbf7ee] to-[#f4ecd8] flex-1">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
-            {/* Image Container with Wooden Frame */}
-            <div className="border-3 border-[#783e18] aspect-[16/9] sm:aspect-[4/3] bg-[#291307] overflow-hidden relative shadow-md rounded-sm">
-              {game.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={game.image}
-                  alt={game.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center font-tavern text-xs text-[#d6b080]">
-                  [RETRATO NO DISPONIBLE]
+            {/* Columna Izquierda: Imagen y Expansiones */}
+            <div className="space-y-4">
+              {/* Image Container with Wooden Frame */}
+              <div className="border-3 border-[#783e18] aspect-[16/9] sm:aspect-[4/3] bg-[#291307] overflow-hidden relative shadow-md rounded-sm">
+                {game.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={game.image}
+                    alt={game.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center font-tavern text-xs text-[#d6b080]">
+                    [RETRATO NO DISPONIBLE]
+                  </div>
+                )}
+
+                {/* Wax Seal Stamp in Image */}
+                <div className="absolute bottom-2.5 left-2.5">
+                  {isAvailable ? (
+                    <span className="wax-seal-green font-tavern text-[10px] uppercase px-2.5 py-1 flex items-center gap-1.5 font-bold tracking-wider rounded-sm">
+                      <span className="w-2 h-2 rounded-full bg-[#a7f3d0] inline-block animate-ping"></span>
+                      DISPONIBLE
+                    </span>
+                  ) : (
+                    <span className="wax-seal-red font-tavern text-[10px] uppercase px-2.5 py-1 flex items-center gap-1.5 font-bold tracking-wider rounded-sm">
+                      <span className="w-2 h-2 rounded-full bg-red-300 inline-block"></span>
+                      AGOTADO EN TABERNA
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* ── SECCIÓN EXPANSIONES (Debajo de la imagen) ── */}
+              {game.expansions && game.expansions.length > 0 && (
+                <div className="pt-3 border-t-2 border-dashed border-[#c8a774]">
+                  <div className="flex justify-center mb-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/amplia.png" alt="Amplía tu experiencia" className="h-10 sm:h-12 object-contain drop-shadow-sm" />
+                  </div>
+                  <div className="flex flex-col gap-2.5">
+                    {game.expansions.map((exp) => {
+                      const isSelected = selectedExpansions.includes(exp.id);
+                      return (
+                        <button
+                          type="button"
+                          key={exp.id}
+                          onClick={() => {
+                            setSelectedExpansions((prev) =>
+                              prev.includes(exp.id)
+                                ? prev.filter((id) => id !== exp.id)
+                                : [...prev, exp.id]
+                            );
+                          }}
+                          className={`w-full flex gap-3 items-center p-2.5 rounded-sm border-2 shadow-sm transition-all text-left cursor-pointer ${
+                            isSelected
+                              ? "bg-[#fef3c7] border-[#b45309] ring-1 ring-[#b45309] shadow-md"
+                              : "bg-[#fdfaf3] border-[#d4be95] hover:border-[#b45309]"
+                          }`}
+                        >
+                          {/* Tilde / Checkbox visual */}
+                          <div
+                            className={`w-5 h-5 rounded-sm border shrink-0 flex items-center justify-center transition-colors ${
+                              isSelected
+                                ? "bg-[#b45309] border-[#78350f] text-[#fef08a]"
+                                : "border-[#8c5828] bg-[#fffdf9]"
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                          </div>
+
+                          {exp.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <div className="w-12 h-12 shrink-0 border border-[#8c5828] rounded-sm overflow-hidden bg-[#291307]">
+                              <img src={exp.image} alt={exp.name} className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 shrink-0 border border-[#8c5828] rounded-sm overflow-hidden bg-[#3d2011] flex items-center justify-center text-[#d6b080] font-tavern text-[8px] text-center p-1 leading-tight">
+                              SIN IMAGEN
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-tavern text-xs font-bold text-[#2c1409] uppercase tracking-wide truncate" title={exp.name}>
+                              {exp.name}
+                            </h5>
+                            <div className="mt-0.5 flex items-baseline gap-1">
+                              <span className="text-xs leading-none">🪙</span>
+                              <span className="font-tavern text-xs font-bold text-[#b45309]">
+                                +${exp.price.toLocaleString("es-AR")}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
-
-              {/* Wax Seal Stamp in Image */}
-              <div className="absolute bottom-2.5 left-2.5">
-                {isAvailable ? (
-                  <span className="wax-seal-green font-tavern text-[10px] uppercase px-2.5 py-1 flex items-center gap-1.5 font-bold tracking-wider rounded-sm">
-                    <span className="w-2 h-2 rounded-full bg-[#a7f3d0] inline-block animate-ping"></span>
-                    DISPONIBLE
-                  </span>
-                ) : (
-                  <span className="wax-seal-red font-tavern text-[10px] uppercase px-2.5 py-1 flex items-center gap-1.5 font-bold tracking-wider rounded-sm">
-                    <span className="w-2 h-2 rounded-full bg-red-300 inline-block"></span>
-                    AGOTADO EN TABERNA
-                  </span>
-                )}
-              </div>
             </div>
 
             {/* Core Info */}
@@ -103,12 +195,19 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                   {game.name}
                 </h2>
 
-                {/* Gold coin price */}
-                <div className="mt-3 flex items-baseline gap-2">
-                  <span className="text-3xl leading-none" title="Precio de alquiler">🪙</span>
-                  <span className="font-tavern text-3xl font-bold text-[#2b170c]">
-                    ${game.price.toLocaleString("es-AR")}
-                  </span>
+                {/* Gold coin price dinámico */}
+                <div className="mt-3 flex flex-col gap-0.5">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl leading-none" title="Precio total de alquiler">🪙</span>
+                    <span className="font-tavern text-3xl font-bold text-[#2b170c]">
+                      ${totalPrice.toLocaleString("es-AR")}
+                    </span>
+                  </div>
+                  {expansionsTotalPrice > 0 && (
+                    <span className="text-[11px] font-serif text-[#b45309] font-semibold">
+                      (Base ${game.price.toLocaleString("es-AR")} + Exp. ${expansionsTotalPrice.toLocaleString("es-AR")})
+                    </span>
+                  )}
                 </div>
 
                 <div className="mt-3 pt-3 border-t-2 border-dotted border-[#c8a774]">
