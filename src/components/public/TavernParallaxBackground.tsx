@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ASSETS } from "@/lib/assets";
 
 export default function TavernParallaxBackground() {
   const [offsetY, setOffsetY] = useState(0);
@@ -30,7 +31,7 @@ export default function TavernParallaxBackground() {
       <div
         className="absolute inset-0 w-full h-full"
         style={{
-          backgroundImage: "url('/tavern-wall.jpg')",
+          backgroundImage: `url('${ASSETS.tavernWall}')`,
           backgroundRepeat: "repeat-y",
           backgroundSize: "100% auto",
           backgroundPosition: `center -${offsetY}px`,

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Users, Clock, Baby, MessageSquare, Check } from "lucide-react";
 import { GameWithComponents } from "@/types";
+import { ASSETS } from "@/lib/assets";
 
 interface GameDetailModalProps {
   game: GameWithComponents | null;
@@ -60,7 +61,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
         <div className="px-4 sm:px-6 py-3 sm:py-4 wood-beam border-b-2 border-[#8c5828] flex items-center justify-between text-[#fef3c7] shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-sm flex items-center justify-center p-0.5">
-              <img src="/Logo.png" alt="Logo" className="w-full h-full object-contain" />
+              <img src={ASSETS.logo} alt="Logo" className="w-full h-full object-contain" />
             </div>
             <span className="font-tavern text-xs uppercase bg-[#4a2612] text-[#fef08a] border border-[#a16207] px-2.5 py-0.5 font-bold tracking-wider rounded-sm">
               {game.category}
@@ -118,7 +119,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                 <div className="pt-3 border-t-2 border-dashed border-[#c8a774]">
                   <div className="flex justify-center mb-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/amplia.png" alt="Amplía tu experiencia" className="h-16 sm:h-20 object-contain drop-shadow-[0_8px_12px_rgba(0,0,0,0.6)]" />
+                    <img src={ASSETS.amplia} alt="Amplía tu experiencia" className="h-16 sm:h-20 object-contain drop-shadow-[0_8px_12px_rgba(0,0,0,0.6)]" />
                   </div>
                   <div className="flex flex-col gap-2.5">
                     {game.expansions.map((exp) => {

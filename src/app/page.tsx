@@ -7,6 +7,7 @@ import GameDetailModal from "@/components/public/GameDetailModal";
 import { GameWithComponents } from "@/types";
 import { getGames, getCategories } from "@/lib/actions/games";
 import { Search, Filter, RefreshCw, Compass, Scroll, Shield, Sparkles } from "lucide-react";
+import { ASSETS } from "@/lib/assets";
 
 export const dynamic = 'force-dynamic';
 export default function CatalogPage() {
@@ -90,7 +91,7 @@ export default function CatalogPage() {
           {/* Watermark Compass (Now Logo) */}
           <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/Logo.png" alt="Logo" className="w-72 h-72 opacity-50 grayscale" />
+            <img src={ASSETS.logo} alt="Logo" className="w-72 h-72 opacity-50 grayscale" />
           </div>
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -269,7 +270,7 @@ export default function CatalogPage() {
       <footer className="wood-beam border-t-4 border-[#8c5828] mt-16 py-8 text-center text-xs font-serif text-[#d6b080]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 font-tavern text-sm text-[#fffdfa] font-bold">
-            <img src="/Logo.png" alt="Logo" className="w-5 h-5 opacity-90" />
+            <img src={ASSETS.logo} alt="Logo" className="w-5 h-5 opacity-90" />
             <span>LA TABERNA DEL EXPLORADOR</span>
           </div>
           <span className="text-xs text-[#e2b17b] font-serif">

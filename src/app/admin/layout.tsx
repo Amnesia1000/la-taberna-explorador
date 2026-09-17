@@ -17,6 +17,7 @@ import {
   Scroll,
 } from "lucide-react";
 import { useState } from "react";
+import { ASSETS } from "@/lib/assets";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -42,7 +43,7 @@ export default function AdminLayout({
       <div className="md:hidden border-b border-[#dfcfb2] bg-[#24130a] px-4 h-14 flex items-center justify-between text-[#fef3c7]">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 flex items-center justify-center rounded-sm">
-            <img src="/Logo.png" alt="Logo" className="w-6 h-6 object-contain" />
+            <img src={ASSETS.logo} alt="Logo" className="w-6 h-6 object-contain" />
           </div>
           <span className="font-tavern text-xs font-bold uppercase tracking-wider text-[#fef3c7]">
             GREMIO // PANEL DE GESTIÓN
@@ -68,7 +69,7 @@ export default function AdminLayout({
           <div className="p-5 border-b border-[#3d2215] bg-[#180d07]">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 flex items-center justify-center rounded-sm">
-                <img src="/Logo.png" alt="Logo" className="w-8 h-8 object-contain opacity-90" />
+                <img src={ASSETS.logo} alt="Logo" className="w-8 h-8 object-contain opacity-90" />
               </div>
               <div>
                 <h2 className="font-tavern text-xs font-bold uppercase tracking-wider text-[#fef3c7]">

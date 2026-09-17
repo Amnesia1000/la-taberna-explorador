@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Users, Clock, Baby } from "lucide-react";
 import { GameWithComponents } from "@/types";
+import { ASSETS } from "@/lib/assets";
 
 interface GameCardProps {
   game: GameWithComponents & { image2?: string | null };
@@ -47,7 +48,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
         {/* The ficha PNG frame on top (z-10) */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/ficha.png"
+          src={ASSETS.ficha}
           alt=""
           aria-hidden="true"
           className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-10"
@@ -57,7 +58,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
         {((game.expansions && game.expansions.length > 0) || game.hasExpansions || (game._count?.expansions ?? 0) > 0) && (
           <div className="absolute z-30 pointer-events-none" style={{ top: "-1%", right: "30%", width: "35%" }}>
             <img
-              src="/disponible.png"
+              src={ASSETS.disponible}
               alt="Expansiones disponibles"
               className="w-full h-auto drop-shadow-[0_8px_12px_rgba(0,0,0,0.7)] group-hover:drop-shadow-[0_10px_16px_rgba(0,0,0,0.85)] transition-all duration-300 group-hover:scale-105"
             />
