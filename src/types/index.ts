@@ -28,7 +28,40 @@ export interface GameWithComponents {
   minAge: number;
   playtime: number;
   maxPlaytime?: number | null;
+  hasExpansions?: boolean;
   components?: GameComponentsData | null;
+  expansions?: ExpansionWithComponents[];
+  _count?: {
+    expansions?: number;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ExpansionWithComponents {
+  id: string;
+  gameId: string;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  image: string;
+  image2?: string | null;
+  qrManual?: string | null;
+  qrVideo?: string | null;
+  minPlayers: number;
+  maxPlayers: number;
+  minAge: number;
+  playtime: number;
+  maxPlaytime?: number | null;
+  components?: GameComponentsData | null;
+  game?: {
+    id: string;
+    name: string;
+    category?: string;
+    image?: string;
+    hasExpansions?: boolean;
+  } | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -15,7 +15,29 @@ export async function getGames() {
       },
     });
 
-    return { success: true, data: games };
+    let expansionCounts: Record<string, number> = {};
+    try {
+      if ((prisma as any).expansion) {
+        const counts = await (prisma as any).expansion.groupBy({
+          by: ["gameId"],
+          _count: { _all: true },
+        });
+        counts.forEach((c: any) => {
+          expansionCounts[c.gameId] = c._count._all;
+        });
+      }
+    } catch (e) {
+      console.warn("No se pudieron agrupar expansiones aún:", e);
+    }
+
+    const gamesWithCounts = games.map((game) => ({
+      ...game,
+      _count: {
+        expansions: expansionCounts[game.id] || 0,
+      },
+    }));
+
+    return { success: true, data: gamesWithCounts };
   } catch (error) {
     console.error("Error obteniendo juegos:", error);
     return { success: false, error: "Error al cargar los juegos" };
@@ -110,6 +132,8 @@ export async function saveGame(formData: FormData, id?: string) {
       finalQrVideoUrl = blob.url;
     }
 
+    const hasExpansions = formData.get("hasExpansions") === "true";
+
     const gameData = {
       name,
       description,
@@ -150,9 +174,12 @@ export async function saveGame(formData: FormData, id?: string) {
           },
         },
       });
+
+      // Actualizar columna hasExpansions vía SQL directo (resistente a caché de servidor en caliente)
+      await prisma.$executeRaw`UPDATE "Game" SET "hasExpansions" = ${hasExpansions} WHERE "id" = ${id}`;
     } else {
       // CREAR JUEGO NUEVO
-      await prisma.game.create({
+      const created = await prisma.game.create({
         data: {
           ...gameData,
           components: {
@@ -160,15 +187,24 @@ export async function saveGame(formData: FormData, id?: string) {
           },
         },
       });
+
+      if (hasExpansions) {
+        await prisma.$executeRaw`UPDATE "Game" SET "hasExpansions" = true WHERE "id" = ${created.id}`;
+      }
     }
 
-    revalidatePath("/admin/games");
-    revalidatePath("/");
+    try {
+      revalidatePath("/admin/games");
+      revalidatePath("/admin/expansions");
+      revalidatePath("/");
+    } catch {
+      // Ignorar si revalidatePath se ejecuta fuera del contexto de una petición HTTP Next
+    }
 
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error guardando juego:", error);
-    return { success: false, error: "Error al guardar el juego en la base de datos" };
+    return { success: false, error: error?.message || "Error al guardar el juego en la base de datos" };
   }
 }
 
@@ -178,12 +214,16 @@ export async function deleteGame(id: string) {
       where: { id },
     });
 
-    revalidatePath("/admin/games");
-    revalidatePath("/");
+    try {
+      revalidatePath("/admin/games");
+      revalidatePath("/");
+    } catch {
+      // Ignorar fuera de contexto Next
+    }
 
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error eliminando juego:", error);
-    return { success: false, error: "Error al eliminar el juego" };
+    return { success: false, error: error?.message || "Error al eliminar el juego" };
   }
 }

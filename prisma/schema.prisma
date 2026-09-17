@@ -8,26 +8,28 @@ datasource db {
 }
 
 model Game {
-  id           String          @id @default(cuid())
-  name         String
-  description  String
-  category     String
-  price        Float
-  stock        Int             @default(1)
-  image        String
-  minPlayers   Int             @default(1)
-  maxPlayers   Int             @default(4)
-  minAge       Int             @default(8)
-  playtime     Int             @default(45)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  image2       String?
-  qrManual     String?
-  qrVideo      String?
-  maxPlaytime  Int?
-  components   GameComponents?
-  rentals      Rental[]
-  reservations Reservation[]
+  id            String          @id @default(cuid())
+  name          String
+  description   String
+  category      String
+  price         Float
+  stock         Int             @default(1)
+  image         String
+  minPlayers    Int             @default(1)
+  maxPlayers    Int             @default(4)
+  minAge        Int             @default(8)
+  playtime      Int             @default(45)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  image2        String?
+  qrManual      String?
+  qrVideo       String?
+  maxPlaytime   Int?
+  hasExpansions Boolean         @default(false)
+  components    GameComponents?
+  rentals       Rental[]
+  reservations  Reservation[]
+  expansions    Expansion[]
 }
 
 model GameComponents {
@@ -42,6 +44,42 @@ model GameComponents {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   game              Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model Expansion {
+  id          String               @id @default(cuid())
+  gameId      String
+  name        String
+  description String
+  price       Float
+  stock       Int                  @default(1)
+  image       String
+  image2      String?
+  qrManual    String?
+  qrVideo     String?
+  minPlayers  Int                  @default(1)
+  maxPlayers  Int                  @default(4)
+  minAge      Int                  @default(8)
+  playtime    Int                  @default(45)
+  maxPlaytime Int?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  components  ExpansionComponents?
+  game        Game                 @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model ExpansionComponents {
+  id                String    @id @default(cuid())
+  expansionId       String    @unique
+  cards             Int       @default(0)
+  tokens            Int       @default(0)
+  dice              Int       @default(0)
+  tiles             Int       @default(0)
+  others            Int       @default(0)
+  othersDescription String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  expansion         Expansion @relation(fields: [expansionId], references: [id], onDelete: Cascade)
 }
 
 model User {

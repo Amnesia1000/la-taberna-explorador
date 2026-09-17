@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Dices,
+  Puzzle,
   Layers,
   Repeat,
   CalendarCheck,
@@ -20,6 +21,7 @@ import { useState } from "react";
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/games", label: "Juegos", icon: Dices },
+  { href: "/admin/expansions", label: "Expansiones", icon: Puzzle },
   { href: "/admin/components", label: "Componentes & Remito", icon: Layers },
   { href: "/admin/rentals", label: "Alquileres", icon: Repeat },
   { href: "/admin/reservations", label: "Reservas", icon: CalendarCheck },

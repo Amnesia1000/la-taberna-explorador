@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import {
-  getGames,
-  saveGame,
-  deleteGame,
-  getCategories,
-} from "@/lib/actions/games";
-import { GameWithComponents } from "@/types";
+  getExpansions,
+  getEligibleGames,
+  saveExpansion,
+  deleteExpansion,
+} from "@/lib/actions/expansions";
+import { ExpansionWithComponents } from "@/types";
 import {
   Plus,
   Edit2,
@@ -17,21 +17,33 @@ import {
   Upload,
   Link as LinkIcon,
   X,
-  Dices,
-  AlertTriangle,
   Puzzle,
+  AlertTriangle,
+  Layers,
+  Dices,
+  ExternalLink,
+  Info,
 } from "lucide-react";
+import Link from "next/link";
 
-export default function AdminGamesPage() {
-  const [games, setGames] = useState<GameWithComponents[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+interface EligibleGame {
+  id: string;
+  name: string;
+  category: string;
+  image: string;
+  hasExpansions: boolean;
+}
+
+export default function AdminExpansionsPage() {
+  const [expansions, setExpansions] = useState<ExpansionWithComponents[]>([]);
+  const [eligibleGames, setEligibleGames] = useState<EligibleGame[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("TODOS");
+  const [selectedGameFilter, setSelectedGameFilter] = useState<string>("TODOS");
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingGame, setEditingGame] = useState<GameWithComponents | null>(null);
+  const [editingExpansion, setEditingExpansion] = useState<ExpansionWithComponents | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [imageMode1, setImageMode1] = useState<"URL" | "FILE">("URL");
@@ -41,10 +53,10 @@ export default function AdminGamesPage() {
 
   // Form Fields State
   const [formData, setFormData] = useState({
+    gameId: "",
     name: "",
     description: "",
-    category: "Estrategia",
-    price: 3000,
+    price: 2000,
     imageUrl: "",
     imageUrl2: "",
     qrManualUrl: "",
@@ -52,17 +64,16 @@ export default function AdminGamesPage() {
     minPlayers: 2,
     maxPlayers: 4,
     minAge: 8,
-    playtime: 45,
-    maxPlaytime: 60,
-    hasExpansions: false,
+    playtime: 30,
+    maxPlaytime: 45,
     // Componentes
     cards: 0,
     tokens: 0,
     dice: 0,
     tiles: 0,
   });
-  
-  const [otherComponents, setOtherComponents] = useState<{quantity: number, name: string}[]>([]);
+
+  const [otherComponents, setOtherComponents] = useState<{ quantity: number; name: string }[]>([]);
   const [newOtherQty, setNewOtherQty] = useState(1);
   const [newOtherName, setNewOtherName] = useState("");
 
@@ -73,15 +84,16 @@ export default function AdminGamesPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [gamesRes, catRes] = await Promise.all([
-      getGames(),
-      getCategories(),
+    const [expRes, gamesRes] = await Promise.all([
+      getExpansions(),
+      getEligibleGames(),
     ]);
-    if (gamesRes.success && gamesRes.data) {
-      setGames(gamesRes.data as unknown as GameWithComponents[]);
+
+    if (expRes.success && expRes.data) {
+      setExpansions(expRes.data as unknown as ExpansionWithComponents[]);
     }
-    if (catRes.success && catRes.data) {
-      setCategories(catRes.data);
+    if (gamesRes.success && gamesRes.data) {
+      setEligibleGames(gamesRes.data as unknown as EligibleGame[]);
     }
     setLoading(false);
   };
@@ -91,12 +103,12 @@ export default function AdminGamesPage() {
   }, []);
 
   const handleOpenCreate = () => {
-    setEditingGame(null);
+    setEditingExpansion(null);
     setFormData({
+      gameId: eligibleGames.length > 0 ? eligibleGames[0].id : "",
       name: "",
       description: "",
-      category: "Estrategia",
-      price: 3000,
+      price: 2000,
       imageUrl: "",
       imageUrl2: "",
       qrManualUrl: "",
@@ -104,9 +116,8 @@ export default function AdminGamesPage() {
       minPlayers: 2,
       maxPlayers: 4,
       minAge: 8,
-      playtime: 45,
-      maxPlaytime: 60,
-      hasExpansions: false,
+      playtime: 30,
+      maxPlaytime: 45,
       cards: 0,
       tokens: 0,
       dice: 0,
@@ -125,43 +136,46 @@ export default function AdminGamesPage() {
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (game: any) => {
-    setEditingGame(game);
-    
+  const handleOpenEdit = (expansion: ExpansionWithComponents) => {
+    setEditingExpansion(expansion);
+
     // Parse others
-    let parsedOthers: {quantity: number, name: string}[] = [];
-    if (game.components?.othersDescription) {
+    let parsedOthers: { quantity: number; name: string }[] = [];
+    if (expansion.components?.othersDescription) {
       try {
-        parsedOthers = JSON.parse(game.components.othersDescription);
+        parsedOthers = JSON.parse(expansion.components.othersDescription);
       } catch (e) {
-        // Fallback for old format
-        if (game.components.othersDescription.trim() !== "") {
-           parsedOthers = [{quantity: game.components.others || 1, name: game.components.othersDescription}];
+        if (expansion.components.othersDescription.trim() !== "") {
+          parsedOthers = [
+            {
+              quantity: expansion.components.others || 1,
+              name: expansion.components.othersDescription,
+            },
+          ];
         }
       }
-    } else if (game.components?.others > 0) {
-       parsedOthers = [{quantity: game.components.others, name: "Otros"}];
+    } else if (expansion.components?.others && expansion.components.others > 0) {
+      parsedOthers = [{ quantity: expansion.components.others, name: "Otros" }];
     }
 
     setFormData({
-      name: game.name || "",
-      description: game.description || "",
-      category: game.category || "",
-      price: game.price || 0,
-      imageUrl: game.image || "",
-      imageUrl2: game.image2 || "",
-      qrManualUrl: game.qrManual || "",
-      qrVideoUrl: game.qrVideo || "",
-      minPlayers: game.minPlayers || 1,
-      maxPlayers: game.maxPlayers || 4,
-      minAge: game.minAge || 8,
-      playtime: game.playtime || 30,
-      maxPlaytime: game.maxPlaytime || game.playtime || 30,
-      hasExpansions: Boolean(game.hasExpansions),
-      cards: game.components?.cards || 0,
-      tokens: game.components?.tokens || 0,
-      dice: game.components?.dice || 0,
-      tiles: game.components?.tiles || 0,
+      gameId: expansion.gameId || "",
+      name: expansion.name || "",
+      description: expansion.description || "",
+      price: expansion.price || 0,
+      imageUrl: expansion.image || "",
+      imageUrl2: expansion.image2 || "",
+      qrManualUrl: expansion.qrManual || "",
+      qrVideoUrl: expansion.qrVideo || "",
+      minPlayers: expansion.minPlayers || 1,
+      maxPlayers: expansion.maxPlayers || 4,
+      minAge: expansion.minAge || 8,
+      playtime: expansion.playtime || 30,
+      maxPlaytime: expansion.maxPlaytime || expansion.playtime || 30,
+      cards: expansion.components?.cards || 0,
+      tokens: expansion.components?.tokens || 0,
+      dice: expansion.components?.dice || 0,
+      tiles: expansion.components?.tiles || 0,
     });
     setOtherComponents(parsedOthers);
     setSelectedFile1(null);
@@ -177,11 +191,11 @@ export default function AdminGamesPage() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`¿Confirmas la eliminación del juego "${name}"?`)) return;
+    if (!confirm(`¿Confirmas la eliminación de la expansión "${name}"?`)) return;
 
-    const res = await deleteGame(id);
+    const res = await deleteExpansion(id);
     if (!res.success) {
-      alert(res.error || "No se pudo eliminar el juego.");
+      alert(res.error || "No se pudo eliminar la expansión.");
     } else {
       await loadData();
     }
@@ -192,24 +206,28 @@ export default function AdminGamesPage() {
     setSaving(true);
     setErrorMessage("");
 
+    if (!formData.gameId) {
+      setErrorMessage("Debes seleccionar un juego principal para la expansión.");
+      setSaving(false);
+      return;
+    }
+
     const data = new FormData();
+    data.append("gameId", formData.gameId);
     data.append("name", formData.name);
     data.append("description", formData.description);
-    data.append("category", formData.category);
     data.append("price", formData.price.toString());
     data.append("minPlayers", formData.minPlayers.toString());
     data.append("maxPlayers", formData.maxPlayers.toString());
     data.append("minAge", formData.minAge.toString());
     data.append("playtime", formData.playtime.toString());
     data.append("maxPlaytime", formData.maxPlaytime.toString());
-    data.append("hasExpansions", formData.hasExpansions ? "true" : "false");
 
     data.append("cards", formData.cards.toString());
     data.append("tokens", formData.tokens.toString());
     data.append("dice", formData.dice.toString());
     data.append("tiles", formData.tiles.toString());
-    
-    // Total others count and serialized description
+
     const totalOthers = otherComponents.reduce((acc, curr) => acc + curr.quantity, 0);
     data.append("others", totalOthers.toString());
     data.append("othersDescription", JSON.stringify(otherComponents));
@@ -242,7 +260,7 @@ export default function AdminGamesPage() {
       data.append("qrVideoUrl", formData.qrVideoUrl || "");
     }
 
-    const res = await saveGame(data, editingGame?.id);
+    const res = await saveExpansion(data, editingExpansion?.id);
     if (res.success) {
       setIsModalOpen(false);
       await loadData();
@@ -252,14 +270,18 @@ export default function AdminGamesPage() {
     setSaving(false);
   };
 
-  const filteredGames = games
-    .filter((g) => {
-      if (selectedCategory !== "TODOS" && g.category !== selectedCategory) return false;
+  const filteredExpansions = expansions
+    .filter((exp) => {
+      if (selectedGameFilter !== "TODOS" && exp.gameId !== selectedGameFilter) return false;
       if (searchTerm.trim() !== "") {
         const term = searchTerm.toLowerCase();
+        const expName = exp.name.toLowerCase();
+        const expDesc = exp.description.toLowerCase();
+        const gameName = exp.game?.name ? exp.game.name.toLowerCase() : "";
         return (
-          g.name.toLowerCase().includes(term) ||
-          g.description.toLowerCase().includes(term)
+          expName.includes(term) ||
+          expDesc.includes(term) ||
+          gameName.includes(term)
         );
       }
       return true;
@@ -271,50 +293,73 @@ export default function AdminGamesPage() {
       {/* Top Title & Actions */}
       <div className="border-b border-zinc-200 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="font-mono text-xs uppercase tracking-widest text-zinc-500 mb-1">
-            CATÁLOGO & INVENTARIO // CRUD
+          <div className="font-mono text-xs uppercase tracking-widest text-zinc-500 mb-1 flex items-center gap-1.5">
+            <Puzzle className="w-3.5 h-3.5 text-amber-700" />
+            <span>CATÁLOGO & INVENTARIO // EXPANSIONES</span>
           </div>
           <h1 className="font-mono text-2xl sm:text-3xl font-bold uppercase tracking-tight text-zinc-900">
-            GESTIÓN DE JUEGOS DE MESA
+            GESTIÓN DE EXPANSIONES
           </h1>
+          <p className="text-xs text-zinc-500 font-mono mt-1">
+            Administra las expansiones oficiales vinculadas a tus juegos de mesa base.
+          </p>
         </div>
 
         <button
           type="button"
           onClick={handleOpenCreate}
-          className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-mono text-xs uppercase tracking-wider flex items-center gap-2 transition"
+          className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-mono text-xs uppercase tracking-wider flex items-center gap-2 transition rounded-sm shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>Nuevo Juego</span>
+          <span>Nueva Expansión</span>
         </button>
       </div>
 
+      {/* Info Notice if no games have hasExpansions = true */}
+      {eligibleGames.length === 0 && !loading && (
+        <div className="border border-amber-300 bg-amber-50 p-4 font-mono text-xs text-amber-900 flex items-start gap-3 rounded-sm">
+          <Info className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-bold uppercase">
+              No hay juegos habilitados con expansiones
+            </p>
+            <p className="text-amber-800">
+              Para agregar una expansión, primero debes editar un juego en la sección{" "}
+              <Link href="/admin/games" className="underline font-bold hover:text-amber-950 inline-flex items-center gap-1">
+                Juegos <ExternalLink className="w-3 h-3" />
+              </Link>{" "}
+              y activar la casilla <strong>&quot;Tiene expansiones&quot;</strong>.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Filter and Search Bar */}
-      <div className="border border-zinc-200 bg-white p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="border border-zinc-200 bg-white p-4 flex flex-col sm:flex-row gap-3 items-center justify-between shadow-sm">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Filtrar por nombre o descripción..."
+            placeholder="Buscar por nombre, detalle o juego base..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="wire-input pl-9 text-xs"
+            className="wire-input pl-9 text-xs w-full"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <span className="font-mono text-xs uppercase text-zinc-500 whitespace-nowrap">
-            Categoría:
+          <span className="font-mono text-xs uppercase text-zinc-500 whitespace-nowrap flex items-center gap-1">
+            <Dices className="w-3.5 h-3.5" /> Juego Base:
           </span>
           <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="wire-input text-xs w-full sm:w-48"
+            value={selectedGameFilter}
+            onChange={(e) => setSelectedGameFilter(e.target.value)}
+            className="wire-input text-xs w-full sm:w-56"
           >
-            <option value="TODOS">TODAS ({games.length})</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
+            <option value="TODOS">TODOS LOS JUEGOS ({expansions.length})</option>
+            {eligibleGames.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
               </option>
             ))}
           </select>
@@ -322,25 +367,34 @@ export default function AdminGamesPage() {
       </div>
 
       {/* Table */}
-      <div className="border border-zinc-200 bg-white overflow-x-auto">
+      <div className="border border-zinc-200 bg-white overflow-x-auto shadow-sm">
         {loading ? (
           <div className="p-12 text-center">
             <RefreshCw className="w-6 h-6 animate-spin mx-auto text-zinc-400 mb-2" />
-            <p className="font-mono text-xs text-zinc-500 uppercase">Cargando juegos...</p>
+            <p className="font-mono text-xs text-zinc-500 uppercase">Cargando expansiones...</p>
           </div>
-        ) : filteredGames.length === 0 ? (
+        ) : filteredExpansions.length === 0 ? (
           <div className="p-12 text-center">
-            <Dices className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
+            <Puzzle className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
             <p className="font-mono text-xs text-zinc-600 uppercase">
-              No se encontraron juegos con los criterios seleccionados.
+              No se encontraron expansiones registradas.
             </p>
+            {eligibleGames.length > 0 && (
+              <button
+                type="button"
+                onClick={handleOpenCreate}
+                className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 text-white font-mono text-xs uppercase hover:bg-zinc-800 transition"
+              >
+                <Plus className="w-3.5 h-3.5" /> Crear primera expansión
+              </button>
+            )}
           </div>
         ) : (
           <table className="w-full text-left font-mono text-xs border-collapse">
             <thead>
               <tr className="border-b border-zinc-200 bg-zinc-50 uppercase text-zinc-500">
                 <th className="p-3 w-16 text-center">Img</th>
-                <th className="p-3">Título / Categoría</th>
+                <th className="p-3">Expansión / Juego Base</th>
                 <th className="p-3 text-center">Jugadores</th>
                 <th className="p-3 text-center">Duración</th>
                 <th className="p-3 text-right">Tarifa</th>
@@ -349,15 +403,15 @@ export default function AdminGamesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200">
-              {filteredGames.map((game) => (
-                <tr key={game.id} className="hover:bg-zinc-50/80 transition">
+              {filteredExpansions.map((exp) => (
+                <tr key={exp.id} className="hover:bg-zinc-50/80 transition">
                   <td className="p-3 text-center">
                     <div className="w-10 h-10 border border-zinc-300 bg-zinc-100 overflow-hidden mx-auto">
-                      {game.image ? (
+                      {exp.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={game.image}
-                          alt={game.name}
+                          src={exp.image}
+                          alt={exp.name}
                           className="w-full h-full object-cover grayscale"
                         />
                       ) : (
@@ -369,35 +423,35 @@ export default function AdminGamesPage() {
                   </td>
                   <td className="p-3">
                     <span className="font-bold text-zinc-900 block uppercase">
-                      {game.name}
+                      {exp.name}
                     </span>
                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                      <span className="text-[10px] text-zinc-500 border border-zinc-200 px-1.5 py-0.5 bg-zinc-100 uppercase inline-block">
-                        {game.category}
+                      <span className="text-[10px] text-amber-900 border border-amber-300 px-1.5 py-0.5 bg-amber-50 uppercase inline-flex items-center gap-1 font-semibold">
+                        <Dices className="w-2.5 h-2.5 text-amber-700" />
+                        Juego Base: {exp.game?.name || "Desconocido"}
                       </span>
-                      {game.hasExpansions && (
-                        <span className="text-[10px] text-amber-800 border border-amber-300 px-1.5 py-0.5 bg-amber-50 uppercase inline-flex items-center gap-1 font-semibold">
-                          <Puzzle className="w-2.5 h-2.5 text-amber-700" />
-                          Expansiones ({game._count?.expansions ?? 0})
+                      {exp.game?.category && (
+                        <span className="text-[10px] text-zinc-500 border border-zinc-200 px-1.5 py-0.5 bg-zinc-100 uppercase inline-block">
+                          {exp.game.category}
                         </span>
                       )}
                     </div>
                   </td>
                   <td className="p-3 text-center text-zinc-700">
-                    {game.minPlayers}-{game.maxPlayers} p.
+                    {exp.minPlayers}-{exp.maxPlayers} p.
                   </td>
                   <td className="p-3 text-center text-zinc-700">
-                    {game.maxPlaytime && game.maxPlaytime !== game.playtime
-                      ? `${game.playtime}-${game.maxPlaytime} min`
-                      : `${game.playtime} min`}
+                    {exp.maxPlaytime && exp.maxPlaytime !== exp.playtime
+                      ? `${exp.playtime}-${exp.maxPlaytime} min`
+                      : `${exp.playtime} min`}
                   </td>
                   <td className="p-3 text-right font-bold text-zinc-900">
-                    ${game.price.toLocaleString("es-AR")}
+                    ${exp.price.toLocaleString("es-AR")}
                   </td>
                   <td className="p-3 text-center text-[10px] text-zinc-500">
-                    {game.components ? (
+                    {exp.components ? (
                       <span>
-                        C:{game.components.cards} | F:{game.components.tokens} | D:{game.components.dice}
+                        C:{exp.components.cards} | F:{exp.components.tokens} | D:{exp.components.dice} | L:{exp.components.tiles}
                       </span>
                     ) : (
                       <span className="italic text-zinc-400">Sin registrar</span>
@@ -407,17 +461,17 @@ export default function AdminGamesPage() {
                     <div className="flex items-center justify-end gap-1.5">
                       <button
                         type="button"
-                        onClick={() => handleOpenEdit(game)}
+                        onClick={() => handleOpenEdit(exp)}
                         className="p-1.5 border border-zinc-200 hover:border-zinc-900 text-zinc-700 hover:text-zinc-900 transition"
-                        title="Editar juego"
+                        title="Editar expansión"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDelete(game.id, game.name)}
+                        onClick={() => handleDelete(exp.id, exp.name)}
                         className="p-1.5 border border-zinc-200 hover:border-red-600 text-zinc-700 hover:text-red-600 transition"
-                        title="Eliminar juego"
+                        title="Eliminar expansión"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -435,9 +489,14 @@ export default function AdminGamesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
           <div className="relative w-full max-w-2xl bg-white border-2 border-zinc-900 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between bg-zinc-50">
-              <h3 className="font-mono text-sm uppercase font-bold text-zinc-900">
-                {editingGame ? `Editar Juego: ${editingGame.name}` : "Nuevo Juego en Catálogo"}
-              </h3>
+              <div className="flex items-center gap-2">
+                <Puzzle className="w-4 h-4 text-amber-700" />
+                <h3 className="font-mono text-sm uppercase font-bold text-zinc-900">
+                  {editingExpansion
+                    ? `Editar Expansión: ${editingExpansion.name}`
+                    : "Nueva Expansión"}
+                </h3>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
@@ -455,64 +514,110 @@ export default function AdminGamesPage() {
                 </div>
               )}
 
+              {/* Selector de Juego Base Obligatorio */}
+              <div className="border-2 border-amber-400 bg-amber-50/70 p-4 space-y-2 rounded-sm">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-mono uppercase font-bold text-amber-950 flex items-center gap-1.5">
+                    <Dices className="w-4 h-4 text-amber-800" />
+                    Juego Principal Asociado *
+                  </label>
+                  <span className="text-[10px] font-mono text-amber-800 uppercase bg-amber-100 px-2 py-0.5 border border-amber-300">
+                    Solo juegos con &quot;Tiene expansiones&quot;
+                  </span>
+                </div>
+
+                {eligibleGames.length === 0 ? (
+                  <div className="text-xs font-mono text-red-700 bg-white border border-red-200 p-2.5">
+                    No hay ningún juego con la casilla &quot;Tiene expansiones&quot; activada.{" "}
+                    <Link
+                      href="/admin/games"
+                      className="underline font-bold text-red-900 hover:text-red-950"
+                    >
+                      Ve a la gestión de Juegos para activar al menos uno.
+                    </Link>
+                  </div>
+                ) : (
+                  <select
+                    required
+                    value={formData.gameId}
+                    onChange={(e) => setFormData({ ...formData, gameId: e.target.value })}
+                    className="wire-input text-xs w-full bg-white font-bold text-zinc-900 border-amber-400 focus:border-amber-600"
+                  >
+                    <option value="" disabled>
+                      -- Selecciona el juego base --
+                    </option>
+                    {eligibleGames.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.name} ({g.category})
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <p className="text-[11px] font-mono text-amber-900/80">
+                  Esta expansión quedará vinculada al juego seleccionado y compartirá su relación jerárquica.
+                </p>
+              </div>
+
               {/* Informacion Principal */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
-                    Nombre del Juego *
+                    Nombre de la Expansión *
                   </label>
                   <input
                     type="text"
                     required
                     value={formData.name || ""}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="wire-input text-xs"
-                    placeholder="Ej: Catan, Carcassonne..."
+                    className="wire-input text-xs w-full"
+                    placeholder="Ej: Navegantes, Posadas y Catedrales..."
                   />
                 </div>
 
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
-                    Descripción Breve *
+                    Detalle / Descripción *
                   </label>
                   <textarea
-                    rows={6}
+                    rows={5}
                     required
                     value={formData.description || ""}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="wire-input text-xs"
-                    placeholder="Resumen del juego, mecánica principal y dinámica..."
+                    className="wire-input text-xs w-full"
+                    placeholder="Qué agrega la expansión, nuevas mecánicas, cartas o dinámicas..."
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
-                    Categoría *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.category || ""}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="wire-input text-xs"
-                    placeholder="Estrategia, Party, Cooperativo..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
-                    Tarifa de Alquiler ($) *
+                    Tarifa de Alquiler de la Expansión ($) *
                   </label>
                   <input
                     type="number"
                     min="0"
                     required
                     value={formData.price ?? 0}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                    className="wire-input text-xs"
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })
+                    }
+                    className="wire-input text-xs w-full"
                   />
                 </div>
 
+                <div>
+                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
+                    Edad Mínima Recomendada *
+                  </label>
+                  <input
+                    type="number"
+                    min="3"
+                    value={formData.minAge ?? 8}
+                    onChange={(e) =>
+                      setFormData({ ...formData, minAge: parseInt(e.target.value) || 8 })
+                    }
+                    className="wire-input text-xs w-full"
+                  />
+                </div>
 
                 <div>
                   <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
@@ -525,15 +630,19 @@ export default function AdminGamesPage() {
                       placeholder="Mín"
                       required
                       value={formData.playtime ?? 30}
-                      onChange={(e) => setFormData({ ...formData, playtime: parseInt(e.target.value) || 30 })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, playtime: parseInt(e.target.value) || 30 })
+                      }
                       className="wire-input text-xs"
                     />
                     <input
                       type="number"
                       min="5"
                       placeholder="Máx"
-                      value={formData.maxPlaytime ?? 60}
-                      onChange={(e) => setFormData({ ...formData, maxPlaytime: parseInt(e.target.value) || 0 })}
+                      value={formData.maxPlaytime ?? 45}
+                      onChange={(e) =>
+                        setFormData({ ...formData, maxPlaytime: parseInt(e.target.value) || 0 })
+                      }
                       className="wire-input text-xs"
                     />
                   </div>
@@ -548,8 +657,10 @@ export default function AdminGamesPage() {
                       type="number"
                       min="1"
                       placeholder="Mín"
-                      value={formData.minPlayers ?? 1}
-                      onChange={(e) => setFormData({ ...formData, minPlayers: parseInt(e.target.value) || 1 })}
+                      value={formData.minPlayers ?? 2}
+                      onChange={(e) =>
+                        setFormData({ ...formData, minPlayers: parseInt(e.target.value) || 1 })
+                      }
                       className="wire-input text-xs"
                     />
                     <input
@@ -557,41 +668,11 @@ export default function AdminGamesPage() {
                       min="1"
                       placeholder="Máx"
                       value={formData.maxPlayers ?? 4}
-                      onChange={(e) => setFormData({ ...formData, maxPlayers: parseInt(e.target.value) || 4 })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, maxPlayers: parseInt(e.target.value) || 4 })
+                      }
                       className="wire-input text-xs"
                     />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
-                    Edad Mínima Recomendada *
-                  </label>
-                  <input
-                    type="number"
-                    min="3"
-                    value={formData.minAge ?? 8}
-                    onChange={(e) => setFormData({ ...formData, minAge: parseInt(e.target.value) || 8 })}
-                    className="wire-input text-xs"
-                  />
-                </div>
-
-                <div className="sm:col-span-2 border border-amber-300/80 bg-amber-50/70 p-3.5 flex items-start gap-3 rounded-sm">
-                  <input
-                    type="checkbox"
-                    id="hasExpansions"
-                    checked={formData.hasExpansions}
-                    onChange={(e) => setFormData({ ...formData, hasExpansions: e.target.checked })}
-                    className="mt-0.5 h-4 w-4 rounded border-amber-400 text-amber-700 focus:ring-amber-500 cursor-pointer accent-amber-700"
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="hasExpansions" className="block text-xs font-mono uppercase font-bold text-zinc-900 cursor-pointer flex items-center gap-1.5">
-                      <Puzzle className="w-3.5 h-3.5 text-amber-700" />
-                      Tiene expansiones
-                    </label>
-                    <p className="text-[11px] text-zinc-600 font-mono mt-0.5">
-                      Habilita este juego para permitir vincularle expansiones desde el módulo independiente de Expansiones.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -602,16 +683,17 @@ export default function AdminGamesPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs uppercase font-bold text-zinc-700">
-                      Imagen Principal
+                      Imagen Principal de la Expansión
                     </span>
                     <div className="flex items-center gap-2 font-mono text-[11px]">
                       <button
                         type="button"
                         onClick={() => setImageMode1("URL")}
-                        className={`px-2 py-0.5 border ${imageMode1 === "URL"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
+                        className={`px-2 py-0.5 border ${
+                          imageMode1 === "URL"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
                       >
                         <LinkIcon className="w-3 h-3 inline mr-1" />
                         URL
@@ -619,10 +701,11 @@ export default function AdminGamesPage() {
                       <button
                         type="button"
                         onClick={() => setImageMode1("FILE")}
-                        className={`px-2 py-0.5 border ${imageMode1 === "FILE"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
+                        className={`px-2 py-0.5 border ${
+                          imageMode1 === "FILE"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
                       >
                         <Upload className="w-3 h-3 inline mr-1" />
                         Archivo
@@ -632,20 +715,18 @@ export default function AdminGamesPage() {
 
                   {imageMode1 === "URL" ? (
                     <input
-                      key="input-img1-url"
                       type="url"
                       placeholder="https://..."
                       value={formData.imageUrl || ""}
                       onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-full"
                     />
                   ) : (
                     <input
-                      key="input-img1-file"
                       type="file"
                       accept="image/*"
                       onChange={(e) => setSelectedFile1(e.target.files?.[0] || null)}
-                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100 w-full"
                     />
                   )}
                 </div>
@@ -660,10 +741,11 @@ export default function AdminGamesPage() {
                       <button
                         type="button"
                         onClick={() => setImageMode2("URL")}
-                        className={`px-2 py-0.5 border ${imageMode2 === "URL"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
+                        className={`px-2 py-0.5 border ${
+                          imageMode2 === "URL"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
                       >
                         <LinkIcon className="w-3 h-3 inline mr-1" />
                         URL
@@ -671,10 +753,11 @@ export default function AdminGamesPage() {
                       <button
                         type="button"
                         onClick={() => setImageMode2("FILE")}
-                        className={`px-2 py-0.5 border ${imageMode2 === "FILE"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
+                        className={`px-2 py-0.5 border ${
+                          imageMode2 === "FILE"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
                       >
                         <Upload className="w-3 h-3 inline mr-1" />
                         Archivo
@@ -684,20 +767,18 @@ export default function AdminGamesPage() {
 
                   {imageMode2 === "URL" ? (
                     <input
-                      key="input-img2-url"
                       type="url"
                       placeholder="https://..."
                       value={formData.imageUrl2 || ""}
                       onChange={(e) => setFormData({ ...formData, imageUrl2: e.target.value })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-full"
                     />
                   ) : (
                     <input
-                      key="input-img2-file"
                       type="file"
                       accept="image/*"
                       onChange={(e) => setSelectedFile2(e.target.files?.[0] || null)}
-                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100 w-full"
                     />
                   )}
                 </div>
@@ -705,17 +786,18 @@ export default function AdminGamesPage() {
                 {/* QR Manual */}
                 <div className="space-y-2 pt-3 border-t border-zinc-200">
                   <div className="flex items-center justify-between">
-                     <span className="font-mono text-xs uppercase font-bold text-zinc-700">
-                      QR Manual (Opcional)
+                    <span className="font-mono text-xs uppercase font-bold text-zinc-700">
+                      QR Manual de la Expansión (Opcional)
                     </span>
                     <div className="flex items-center gap-2 font-mono text-[11px]">
                       <button
                         type="button"
                         onClick={() => setQrManualMode("URL")}
-                        className={`px-2 py-0.5 border ${qrManualMode === "URL"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
+                        className={`px-2 py-0.5 border ${
+                          qrManualMode === "URL"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
                       >
                         <LinkIcon className="w-3 h-3 inline mr-1" />
                         URL
@@ -723,10 +805,11 @@ export default function AdminGamesPage() {
                       <button
                         type="button"
                         onClick={() => setQrManualMode("FILE")}
-                        className={`px-2 py-0.5 border ${qrManualMode === "FILE"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
+                        className={`px-2 py-0.5 border ${
+                          qrManualMode === "FILE"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
                       >
                         <Upload className="w-3 h-3 inline mr-1" />
                         Archivo
@@ -736,20 +819,20 @@ export default function AdminGamesPage() {
 
                   {qrManualMode === "URL" ? (
                     <input
-                      key="input-qrm-url"
                       type="url"
                       placeholder="https://..."
                       value={formData.qrManualUrl || ""}
-                      onChange={(e) => setFormData({ ...formData, qrManualUrl: e.target.value })}
-                      className="wire-input text-xs"
+                      onChange={(e) =>
+                        setFormData({ ...formData, qrManualUrl: e.target.value })
+                      }
+                      className="wire-input text-xs w-full"
                     />
                   ) : (
                     <input
-                      key="input-qrm-file"
                       type="file"
                       accept="image/*"
                       onChange={(e) => setSelectedQrManualFile(e.target.files?.[0] || null)}
-                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100 w-full"
                     />
                   )}
                 </div>
@@ -758,16 +841,17 @@ export default function AdminGamesPage() {
                 <div className="space-y-2 pt-3 border-t border-zinc-200">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs uppercase font-bold text-zinc-700">
-                      QR Video (Opcional)
+                      QR Video de la Expansión (Opcional)
                     </span>
                     <div className="flex items-center gap-2 font-mono text-[11px]">
                       <button
                         type="button"
                         onClick={() => setQrVideoMode("URL")}
-                        className={`px-2 py-0.5 border ${qrVideoMode === "URL"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
+                        className={`px-2 py-0.5 border ${
+                          qrVideoMode === "URL"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
                       >
                         <LinkIcon className="w-3 h-3 inline mr-1" />
                         URL
@@ -775,10 +859,11 @@ export default function AdminGamesPage() {
                       <button
                         type="button"
                         onClick={() => setQrVideoMode("FILE")}
-                        className={`px-2 py-0.5 border ${qrVideoMode === "FILE"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
+                        className={`px-2 py-0.5 border ${
+                          qrVideoMode === "FILE"
+                            ? "bg-zinc-900 text-white border-zinc-900"
+                            : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
                       >
                         <Upload className="w-3 h-3 inline mr-1" />
                         Archivo
@@ -788,20 +873,18 @@ export default function AdminGamesPage() {
 
                   {qrVideoMode === "URL" ? (
                     <input
-                      key="input-qrv-url"
                       type="url"
                       placeholder="https://..."
                       value={formData.qrVideoUrl || ""}
                       onChange={(e) => setFormData({ ...formData, qrVideoUrl: e.target.value })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-full"
                     />
                   ) : (
                     <input
-                      key="input-qrv-file"
                       type="file"
                       accept="image/*"
                       onChange={(e) => setSelectedQrVideoFile(e.target.files?.[0] || null)}
-                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100 w-full"
                     />
                   )}
                 </div>
@@ -809,11 +892,11 @@ export default function AdminGamesPage() {
 
               {/* Desglose de Componentes Iniciales */}
               <div className="border border-zinc-200 p-4 bg-zinc-50/50 space-y-3">
-                <span className="font-mono text-xs uppercase font-bold text-zinc-700 block">
-                  Inventario Inicial de Componentes (para Remito Digital)
+                <span className="font-mono text-xs uppercase font-bold text-zinc-700 block flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-amber-700" />
+                  Inventario Inicial de Componentes de la Expansión
                 </span>
-                
-                {/* Standard components in a cleaner layout (max 2 lines) */}
+
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
                     <label className="text-[10px] font-mono text-zinc-500 uppercase block">Cartas</label>
@@ -821,7 +904,9 @@ export default function AdminGamesPage() {
                       type="number"
                       min="0"
                       value={formData.cards ?? 0}
-                      onChange={(e) => setFormData({ ...formData, cards: parseInt(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, cards: parseInt(e.target.value) || 0 })
+                      }
                       className="wire-input text-xs w-full"
                     />
                   </div>
@@ -831,7 +916,9 @@ export default function AdminGamesPage() {
                       type="number"
                       min="0"
                       value={formData.tokens ?? 0}
-                      onChange={(e) => setFormData({ ...formData, tokens: parseInt(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, tokens: parseInt(e.target.value) || 0 })
+                      }
                       className="wire-input text-xs w-full"
                     />
                   </div>
@@ -841,7 +928,9 @@ export default function AdminGamesPage() {
                       type="number"
                       min="0"
                       value={formData.dice ?? 0}
-                      onChange={(e) => setFormData({ ...formData, dice: parseInt(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, dice: parseInt(e.target.value) || 0 })
+                      }
                       className="wire-input text-xs w-full"
                     />
                   </div>
@@ -851,7 +940,9 @@ export default function AdminGamesPage() {
                       type="number"
                       min="0"
                       value={formData.tiles ?? 0}
-                      onChange={(e) => setFormData({ ...formData, tiles: parseInt(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, tiles: parseInt(e.target.value) || 0 })
+                      }
                       className="wire-input text-xs w-full"
                     />
                   </div>
@@ -860,9 +951,9 @@ export default function AdminGamesPage() {
                 {/* Dynamic Others Section */}
                 <div className="pt-3 border-t border-zinc-200">
                   <label className="text-[10px] font-mono text-zinc-700 font-bold uppercase block mb-2">
-                    Otros Componentes
+                    Otros Componentes de la Expansión
                   </label>
-                  
+
                   <div className="flex items-center gap-2 mb-3">
                     <input
                       type="number"
@@ -879,19 +970,25 @@ export default function AdminGamesPage() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && newOtherName.trim()) {
                           e.preventDefault();
-                          setOtherComponents([...otherComponents, { quantity: newOtherQty, name: newOtherName.trim() }]);
+                          setOtherComponents([
+                            ...otherComponents,
+                            { quantity: newOtherQty, name: newOtherName.trim() },
+                          ]);
                           setNewOtherName("");
                           setNewOtherQty(1);
                         }
                       }}
                       className="wire-input text-xs flex-1"
-                      placeholder="Descripción (ej. Tablero, Reloj de arena...)"
+                      placeholder="Descripción (ej. Barcos, Miniaturas, Tablero de mar...)"
                     />
                     <button
                       type="button"
                       onClick={() => {
                         if (newOtherName.trim()) {
-                          setOtherComponents([...otherComponents, { quantity: newOtherQty, name: newOtherName.trim() }]);
+                          setOtherComponents([
+                            ...otherComponents,
+                            { quantity: newOtherQty, name: newOtherName.trim() },
+                          ]);
                           setNewOtherName("");
                           setNewOtherQty(1);
                         }
@@ -905,13 +1002,19 @@ export default function AdminGamesPage() {
                   {otherComponents.length > 0 && (
                     <div className="space-y-1.5">
                       {otherComponents.map((comp, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-white border border-zinc-200 px-3 py-1.5 text-xs font-mono">
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between bg-white border border-zinc-200 px-3 py-1.5 text-xs font-mono"
+                        >
                           <span>
-                            <span className="font-bold text-zinc-900">{comp.quantity}</span> x {comp.name}
+                            <span className="font-bold text-zinc-900">{comp.quantity}</span> x{" "}
+                            {comp.name}
                           </span>
                           <button
                             type="button"
-                            onClick={() => setOtherComponents(otherComponents.filter((_, i) => i !== idx))}
+                            onClick={() =>
+                              setOtherComponents(otherComponents.filter((_, i) => i !== idx))
+                            }
                             className="text-zinc-400 hover:text-red-600 transition"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -934,11 +1037,11 @@ export default function AdminGamesPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || eligibleGames.length === 0}
                   className="px-5 py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-mono text-xs uppercase tracking-wider flex items-center gap-2 disabled:opacity-50"
                 >
                   {saving && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                  <span>{editingGame ? "Guardar Cambios" : "Crear Juego"}</span>
+                  <span>{editingExpansion ? "Guardar Cambios" : "Crear Expansión"}</span>
                 </button>
               </div>
             </form>
