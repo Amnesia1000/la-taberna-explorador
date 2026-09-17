@@ -132,11 +132,19 @@ export default function AdminGamesPage() {
     let parsedOthers: {quantity: number, name: string}[] = [];
     if (game.components?.othersDescription) {
       try {
-        parsedOthers = JSON.parse(game.components.othersDescription);
+        const json = JSON.parse(game.components.othersDescription);
+        if (Array.isArray(json)) {
+          parsedOthers = json.filter(
+            (item: any) => item && typeof item === "object" && item.name && String(item.name).trim() !== ""
+          );
+        }
       } catch (e) {
-        // Fallback for old format
-        if (game.components.othersDescription.trim() !== "") {
-           parsedOthers = [{quantity: game.components.others || 1, name: game.components.othersDescription}];
+        if (
+          game.components.othersDescription.trim() !== "" &&
+          game.components.othersDescription.trim() !== "[]" &&
+          game.components.othersDescription.trim() !== "{}"
+        ) {
+          parsedOthers = [{quantity: game.components.others || 1, name: game.components.othersDescription}];
         }
       }
     } else if (game.components?.others > 0) {
@@ -210,9 +218,10 @@ export default function AdminGamesPage() {
     data.append("tiles", formData.tiles.toString());
     
     // Total others count and serialized description
-    const totalOthers = otherComponents.reduce((acc, curr) => acc + curr.quantity, 0);
+    const validOthers = otherComponents.filter((c) => c && c.name && c.name.trim() !== "");
+    const totalOthers = validOthers.reduce((acc, curr) => acc + (curr.quantity || 1), 0);
     data.append("others", totalOthers.toString());
-    data.append("othersDescription", JSON.stringify(otherComponents));
+    data.append("othersDescription", validOthers.length > 0 ? JSON.stringify(validOthers) : "");
 
     // Imagen 1
     if (imageMode1 === "FILE" && selectedFile1) {

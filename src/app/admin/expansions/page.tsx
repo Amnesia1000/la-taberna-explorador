@@ -143,9 +143,18 @@ export default function AdminExpansionsPage() {
     let parsedOthers: { quantity: number; name: string }[] = [];
     if (expansion.components?.othersDescription) {
       try {
-        parsedOthers = JSON.parse(expansion.components.othersDescription);
+        const json = JSON.parse(expansion.components.othersDescription);
+        if (Array.isArray(json)) {
+          parsedOthers = json.filter(
+            (item: any) => item && typeof item === "object" && item.name && String(item.name).trim() !== ""
+          );
+        }
       } catch (e) {
-        if (expansion.components.othersDescription.trim() !== "") {
+        if (
+          expansion.components.othersDescription.trim() !== "" &&
+          expansion.components.othersDescription.trim() !== "[]" &&
+          expansion.components.othersDescription.trim() !== "{}"
+        ) {
           parsedOthers = [
             {
               quantity: expansion.components.others || 1,
@@ -228,9 +237,10 @@ export default function AdminExpansionsPage() {
     data.append("dice", formData.dice.toString());
     data.append("tiles", formData.tiles.toString());
 
-    const totalOthers = otherComponents.reduce((acc, curr) => acc + curr.quantity, 0);
+    const validOthers = otherComponents.filter((c) => c && c.name && c.name.trim() !== "");
+    const totalOthers = validOthers.reduce((acc, curr) => acc + (curr.quantity || 1), 0);
     data.append("others", totalOthers.toString());
-    data.append("othersDescription", JSON.stringify(otherComponents));
+    data.append("othersDescription", validOthers.length > 0 ? JSON.stringify(validOthers) : "");
 
     // Imagen 1
     if (imageMode1 === "FILE" && selectedFile1) {

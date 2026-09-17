@@ -8,6 +8,14 @@ export async function getGamesWithComponents() {
     const games = await prisma.game.findMany({
       include: {
         components: true,
+        expansions: {
+          include: {
+            components: true,
+          },
+          orderBy: {
+            name: "asc",
+          },
+        },
       },
       orderBy: {
         name: "asc",
@@ -60,5 +68,48 @@ export async function updateComponents(
   } catch (error) {
     console.error("Error updating components:", error);
     return { success: false, error: "Error al actualizar piezas del juego" };
+  }
+}
+
+export async function updateExpansionComponents(
+  expansionId: string,
+  data: {
+    cards: number;
+    tokens: number;
+    dice: number;
+    tiles: number;
+    others: number;
+    othersDescription?: string;
+  }
+) {
+  try {
+    const updated = await prisma.expansionComponents.upsert({
+      where: { expansionId },
+      create: {
+        expansionId,
+        cards: data.cards,
+        tokens: data.tokens,
+        dice: data.dice,
+        tiles: data.tiles,
+        others: data.others,
+        othersDescription: data.othersDescription || null,
+      },
+      update: {
+        cards: data.cards,
+        tokens: data.tokens,
+        dice: data.dice,
+        tiles: data.tiles,
+        others: data.others,
+        othersDescription: data.othersDescription || null,
+      },
+    });
+
+    revalidatePath("/admin/components");
+    revalidatePath("/admin/expansions");
+    revalidatePath("/");
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error("Error updating expansion components:", error);
+    return { success: false, error: "Error al actualizar piezas de la expansión" };
   }
 }

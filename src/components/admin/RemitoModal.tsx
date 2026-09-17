@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { X, FileSignature, RotateCcw, Download, Check, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, FileSignature, RotateCcw, Download, Check, AlertCircle, Puzzle, UserCheck, UserPlus } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
 import jsPDF from "jspdf";
-import { GameWithComponents } from "@/types";
+import { GameWithComponents, UserData } from "@/types";
+import { formatOthersDescription } from "@/lib/utils";
+import { getUsers, createUser } from "@/lib/actions/users";
 
 interface RemitoModalProps {
   games: GameWithComponents[];
@@ -22,6 +24,13 @@ export default function RemitoModal({
   );
 
   const selectedGame = games.find((g) => g.id === selectedGameId);
+
+  // Expansions selected for this remito
+  const [selectedExpansionsForRemito, setSelectedExpansionsForRemito] = useState<string[]>([]);
+
+  // Registered users state
+  const [registeredUsers, setRegisteredUsers] = useState<UserData[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
 
   // Client Information
   const [clientData, setClientData] = useState({
@@ -49,6 +58,31 @@ export default function RemitoModal({
 
   const sigCanvasRef = useRef<SignatureCanvas | null>(null);
 
+  useEffect(() => {
+    getUsers().then((res) => {
+      if (res.success && res.data) {
+        setRegisteredUsers(res.data as unknown as UserData[]);
+      }
+    });
+  }, []);
+
+  const handleUserSelect = (userId: string) => {
+    setSelectedUserId(userId);
+    if (!userId) return;
+
+    const found = registeredUsers.find((u) => u.id === userId);
+    if (found) {
+      setClientData((prev) => ({
+        ...prev,
+        firstName: found.firstName || "",
+        lastName: found.lastName || "",
+        email: found.email || "",
+        phone: found.phone || "",
+        address: found.address || "",
+      }));
+    }
+  };
+
   const handleClearSignature = () => {
     sigCanvasRef.current?.clear();
     setSignatureError(false);
@@ -70,6 +104,37 @@ export default function RemitoModal({
     setGenerating(true);
 
     try {
+      // Auto-crear usuario si completó todos los campos obligatorios y no existe aún
+      if (
+        clientData.firstName.trim() &&
+        clientData.lastName.trim() &&
+        clientData.email.trim() &&
+        clientData.phone.trim() &&
+        clientData.address.trim()
+      ) {
+        const exists = registeredUsers.some(
+          (u) => u.email.toLowerCase() === clientData.email.trim().toLowerCase()
+        );
+        if (!exists) {
+          try {
+            await createUser({
+              firstName: clientData.firstName.trim(),
+              lastName: clientData.lastName.trim(),
+              email: clientData.email.trim(),
+              phone: clientData.phone.trim(),
+              address: clientData.address.trim(),
+            });
+          } catch (err) {
+            console.warn("No se pudo autocrear el cliente en DB:", err);
+          }
+        }
+      }
+
+      // Expansiones seleccionadas
+      const selectedExpObjects = (selectedGame.expansions || []).filter((exp) =>
+        selectedExpansionsForRemito.includes(exp.id)
+      );
+
       // Signature data URL
       const signatureImage = sigCanvasRef.current?.toDataURL("image/png");
 
@@ -112,40 +177,76 @@ export default function RemitoModal({
       doc.text(`Fecha de Retiro: ${deliveryDate} | Fecha Pactada de Devolución: ${returnDate}`, 20, 77);
 
       // 3. Game & Components Inventory Box
-      doc.rect(15, 89, 180, 65);
+      const inventoryBoxY = 89;
+      let currentY = inventoryBoxY + 7;
+
+      const expNamesStr = selectedExpObjects.map((e) => e.name).join(", ");
+      const headerTitle = selectedExpObjects.length > 0
+        ? `JUEGO ENTREGADO: ${selectedGame.name.toUpperCase()} (+ EXP: ${expNamesStr.toUpperCase()})`
+        : `JUEGO ENTREGADO: ${selectedGame.name.toUpperCase()}`;
+
       doc.setFont("courier", "bold");
-      doc.setFontSize(10);
-      doc.text(`JUEGO ENTREGADO: ${selectedGame.name.toUpperCase()}`, 20, 96);
+      doc.setFontSize(9.5);
+      doc.text(headerTitle, 20, currentY);
+      
+      currentY += 6;
       doc.setFont("courier", "normal");
       doc.setFontSize(9);
-      doc.text(`Categoría: ${selectedGame.category} | Tarifa: $${selectedGame.price.toLocaleString("es-AR")}`, 20, 102);
+      doc.text(`Categoría: ${selectedGame.category} | Tarifa Base: $${selectedGame.price.toLocaleString("es-AR")}`, 20, currentY);
 
-      // Components sub-table
-      doc.line(20, 106, 190, 106);
+      currentY += 4;
+      doc.line(20, currentY, 190, currentY);
+      
+      currentY += 5;
       doc.setFont("courier", "bold");
-      doc.text("DETALLE DE PIEZAS VERIFICADAS AL MOMENTO DE LA ENTREGA:", 20, 112);
+      doc.text("DETALLE DE PIEZAS VERIFICADAS AL MOMENTO DE LA ENTREGA:", 20, currentY);
 
       const comp = selectedGame.components;
       doc.setFont("courier", "normal");
-      doc.text(`- Cartas / Mazos:  ${comp?.cards ?? 0} unid.`, 25, 120);
-      doc.text(`- Fichas / Tokens: ${comp?.tokens ?? 0} unid.`, 110, 120);
+      currentY += 7;
+      doc.text(`- Cartas / Mazos:  ${comp?.cards ?? 0} unid.`, 25, currentY);
+      doc.text(`- Fichas / Tokens: ${comp?.tokens ?? 0} unid.`, 110, currentY);
 
-      doc.text(`- Dados:           ${comp?.dice ?? 0} unid.`, 25, 127);
-      doc.text(`- Losetas / Tabl.: ${comp?.tiles ?? 0} unid.`, 110, 127);
+      currentY += 6;
+      doc.text(`- Dados:           ${comp?.dice ?? 0} unid.`, 25, currentY);
+      doc.text(`- Losetas / Tabl.: ${comp?.tiles ?? 0} unid.`, 110, currentY);
 
-      doc.text(`- Otras piezas:    ${comp?.others ?? 0} unid.`, 25, 134);
-      if (comp?.othersDescription) {
-        doc.text(`  Detalle: ${comp.othersDescription}`, 25, 141);
+      currentY += 6;
+      doc.text(`- Otras piezas:    ${comp?.others ?? 0} unid.`, 25, currentY);
+      
+      const formattedOthers = formatOthersDescription(comp?.othersDescription);
+      if (formattedOthers) {
+        currentY += 6;
+        doc.text(`  Detalle: ${formattedOthers}`, 25, currentY);
       }
 
+      if (selectedExpObjects.length > 0) {
+        selectedExpObjects.forEach((exp) => {
+          const expComp = exp.components;
+          const expOthers = formatOthersDescription(expComp?.othersDescription);
+          currentY += 6;
+          doc.setFont("courier", "bold");
+          doc.text(`* EXPANSIÓN: ${exp.name.toUpperCase()}`, 25, currentY);
+          currentY += 4.5;
+          doc.setFont("courier", "normal");
+          doc.text(`  Cartas: ${expComp?.cards ?? 0} | Fichas: ${expComp?.tokens ?? 0} | Dados: ${expComp?.dice ?? 0} | Losetas: ${expComp?.tiles ?? 0} ${expOthers ? `| Detalle: ${expOthers}` : ""}`, 25, currentY);
+        });
+      }
+
+      currentY += 6;
       doc.setFontSize(8);
-      doc.text(`Obs: ${notes}`, 20, 149);
+      doc.text(`Obs: ${notes}`, 20, currentY);
+
+      currentY += 4;
+      const inventoryBoxHeight = Math.max(55, currentY - inventoryBoxY);
+      doc.rect(15, inventoryBoxY, 180, inventoryBoxHeight);
 
       // 4. Responsibility Terms
-      doc.rect(15, 159, 180, 30);
+      const termsBoxY = inventoryBoxY + inventoryBoxHeight + 4;
+      doc.rect(15, termsBoxY, 180, 26);
       doc.setFont("courier", "bold");
       doc.setFontSize(8);
-      doc.text("TÉRMINOS DE CONFORMIDAD Y CUSTODIA:", 20, 165);
+      doc.text("TÉRMINOS DE CONFORMIDAD Y CUSTODIA:", 20, termsBoxY + 5);
       doc.setFont("courier", "normal");
       doc.setFontSize(7.5);
       const terms = [
@@ -155,27 +256,28 @@ export default function RemitoModal({
         "3. La pérdida o rotura de componentes conllevará el cobro del costo de reposición.",
       ];
       terms.forEach((t, i) => {
-        doc.text(t, 20, 171 + i * 4.5);
+        doc.text(t, 20, termsBoxY + 10 + i * 4.2);
       });
 
       // 5. Signature Section
-      doc.rect(15, 194, 180, 50);
+      const sigBoxY = termsBoxY + 30;
+      doc.rect(15, sigBoxY, 180, 44);
       doc.setFont("courier", "bold");
       doc.setFontSize(9);
-      doc.text("CONFORMIDAD Y FIRMA DIGITAL DEL CLIENTE:", 20, 201);
+      doc.text("CONFORMIDAD Y FIRMA DIGITAL DEL CLIENTE:", 20, sigBoxY + 6);
 
       if (signatureImage) {
         // Embed the image on the PDF
-        doc.addImage(signatureImage, "PNG", 30, 204, 60, 25);
+        doc.addImage(signatureImage, "PNG", 30, sigBoxY + 8, 60, 23);
       }
 
-      doc.line(25, 234, 95, 234);
+      doc.line(25, sigBoxY + 34, 95, sigBoxY + 34);
       doc.setFont("courier", "normal");
       doc.setFontSize(8);
-      doc.text("Firma del Cliente Receptor", 35, 239);
+      doc.text("Firma del Cliente Receptor", 35, sigBoxY + 39);
 
-      doc.line(115, 234, 185, 234);
-      doc.text("Firma y Sello Taberna", 130, 239);
+      doc.line(115, sigBoxY + 34, 185, sigBoxY + 34);
+      doc.text("Firma y Sello Taberna", 130, sigBoxY + 39);
 
       // Footer
       doc.setFontSize(7);
@@ -221,26 +323,73 @@ export default function RemitoModal({
 
         {/* Content */}
         <div className="p-6 overflow-y-auto space-y-6">
-          {/* Game Selection */}
-          <div className="border border-zinc-200 p-4 bg-zinc-50/50">
-            <label className="block text-xs font-mono uppercase text-zinc-600 mb-1 font-bold">
-              Seleccionar Juego a Entregar *
-            </label>
-            <select
-              value={selectedGameId}
-              onChange={(e) => setSelectedGameId(e.target.value)}
-              className="wire-input text-xs font-mono"
-            >
-              {games.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name} ({g.category}) - Stock: {g.stock}
-                </option>
-              ))}
-            </select>
+          {/* Game Selection & Expansions */}
+          <div className="border border-zinc-200 p-4 bg-zinc-50/50 space-y-3">
+            <div>
+              <label className="block text-xs font-mono uppercase text-zinc-600 mb-1 font-bold">
+                Seleccionar Juego Principal a Entregar *
+              </label>
+              <select
+                value={selectedGameId}
+                onChange={(e) => {
+                  setSelectedGameId(e.target.value);
+                  setSelectedExpansionsForRemito([]);
+                }}
+                className="wire-input text-xs font-mono"
+              >
+                {games.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name} ({g.category}) - Stock: {g.stock}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Expansions selection list */}
+            {selectedGame && selectedGame.expansions && selectedGame.expansions.length > 0 && (
+              <div className="pt-3 border-t border-zinc-200">
+                <label className="block text-xs font-mono uppercase text-zinc-800 font-bold mb-2 flex items-center gap-1.5">
+                  <Puzzle className="w-3.5 h-3.5 text-amber-700" />
+                  Expansiones Incluidas en este Remito (Opcional):
+                </label>
+                <div className="space-y-1.5">
+                  {selectedGame.expansions.map((exp) => {
+                    const isChecked = selectedExpansionsForRemito.includes(exp.id);
+                    return (
+                      <label
+                        key={exp.id}
+                        className={`flex items-center gap-2.5 p-2 border rounded-sm cursor-pointer transition text-xs font-mono ${
+                          isChecked
+                            ? "bg-amber-100/70 border-amber-400 font-bold"
+                            : "bg-white border-zinc-200 hover:bg-zinc-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            setSelectedExpansionsForRemito((prev) =>
+                              e.target.checked
+                                ? [...prev, exp.id]
+                                : prev.filter((id) => id !== exp.id)
+                            );
+                          }}
+                          className="h-4 w-4 text-amber-700 rounded border-amber-400 focus:ring-amber-500 accent-amber-700"
+                        />
+                        <span className="text-zinc-900">{exp.name}</span>
+                        <span className="text-[10px] text-zinc-500 ml-auto">
+                          (Cartas: {exp.components?.cards ?? 0}, Fichas: {exp.components?.tokens ?? 0}, Dados: {exp.components?.dice ?? 0})
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Inventory preview */}
             {selectedGame && selectedGame.components && (
-              <div className="mt-3 pt-3 border-t border-zinc-200 grid grid-cols-2 sm:grid-cols-5 gap-2 text-center font-mono text-xs">
+              <div className="pt-3 border-t border-zinc-200 grid grid-cols-2 sm:grid-cols-5 gap-2 text-center font-mono text-xs">
                 <div className="bg-white border border-zinc-200 p-1.5">
                   <span className="text-[10px] text-zinc-400 block">CARTAS</span>
                   <span className="font-bold">{selectedGame.components.cards}</span>
@@ -266,11 +415,36 @@ export default function RemitoModal({
           </div>
 
           {/* Client Details */}
-          <div className="space-y-3">
-            <span className="font-mono text-xs uppercase font-bold text-zinc-800 block">
-              Datos del Cliente Receptor
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="space-y-3 border border-zinc-200 p-4 bg-zinc-50/50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-200 pb-2">
+              <span className="font-mono text-xs uppercase font-bold text-zinc-800 flex items-center gap-1.5">
+                <UserCheck className="w-4 h-4 text-emerald-600" />
+                Datos del Cliente Receptor
+              </span>
+
+              {/* Selector de Cliente Registrado */}
+              {registeredUsers.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-zinc-500 uppercase">
+                    Cliente Registrado:
+                  </span>
+                  <select
+                    value={selectedUserId}
+                    onChange={(e) => handleUserSelect(e.target.value)}
+                    className="wire-input text-xs py-1"
+                  >
+                    <option value="">-- Cliente Nuevo / Carga Manual --</option>
+                    {registeredUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.firstName} {u.lastName} ({u.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
               <div>
                 <label className="text-[10px] font-mono uppercase text-zinc-500 block mb-1">
                   Nombre *
@@ -311,7 +485,7 @@ export default function RemitoModal({
               </div>
               <div>
                 <label className="text-[10px] font-mono uppercase text-zinc-500 block mb-1">
-                  Teléfono
+                  Teléfono *
                 </label>
                 <input
                   type="tel"
@@ -323,7 +497,7 @@ export default function RemitoModal({
               </div>
               <div>
                 <label className="text-[10px] font-mono uppercase text-zinc-500 block mb-1">
-                  Email
+                  Email *
                 </label>
                 <input
                   type="email"
@@ -335,7 +509,7 @@ export default function RemitoModal({
               </div>
               <div>
                 <label className="text-[10px] font-mono uppercase text-zinc-500 block mb-1">
-                  Domicilio
+                  Domicilio *
                 </label>
                 <input
                   type="text"
@@ -346,6 +520,13 @@ export default function RemitoModal({
                 />
               </div>
             </div>
+
+            <p className="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 p-2 rounded-sm flex items-center gap-1.5">
+              <UserPlus className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>
+                Al completar todos los datos del cliente (Nombre, Apellido, Teléfono, Email y Domicilio), se registrará automáticamente en la base de datos de usuarios si aún no existe.
+              </span>
+            </p>
           </div>
 
           {/* Dates */}
