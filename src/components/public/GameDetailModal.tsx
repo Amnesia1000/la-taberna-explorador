@@ -118,7 +118,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                 <div className="pt-3 border-t-2 border-dashed border-[#c8a774]">
                   <div className="flex justify-center mb-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/amplia.png" alt="Amplía tu experiencia" className="h-10 sm:h-12 object-contain drop-shadow-sm" />
+                    <img src="/amplia.png" alt="Amplía tu experiencia" className="h-16 sm:h-20 object-contain drop-shadow-[0_8px_12px_rgba(0,0,0,0.6)]" />
                   </div>
                   <div className="flex flex-col gap-2.5">
                     {game.expansions.map((exp) => {
@@ -134,19 +134,17 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                                 : [...prev, exp.id]
                             );
                           }}
-                          className={`w-full flex gap-3 items-center p-2.5 rounded-sm border-2 shadow-sm transition-all text-left cursor-pointer ${
-                            isSelected
-                              ? "bg-[#fef3c7] border-[#b45309] ring-1 ring-[#b45309] shadow-md"
-                              : "bg-[#fdfaf3] border-[#d4be95] hover:border-[#b45309]"
-                          }`}
+                          className={`w-full flex gap-3 items-center p-2.5 rounded-sm border-2 shadow-sm transition-all text-left cursor-pointer ${isSelected
+                            ? "bg-[#fef3c7] border-[#b45309] ring-1 ring-[#b45309] shadow-md"
+                            : "bg-[#fdfaf3] border-[#d4be95] hover:border-[#b45309]"
+                            }`}
                         >
                           {/* Tilde / Checkbox visual */}
                           <div
-                            className={`w-5 h-5 rounded-sm border shrink-0 flex items-center justify-center transition-colors ${
-                              isSelected
-                                ? "bg-[#b45309] border-[#78350f] text-[#fef08a]"
-                                : "border-[#8c5828] bg-[#fffdf9]"
-                            }`}
+                            className={`w-5 h-5 rounded-sm border shrink-0 flex items-center justify-center transition-colors ${isSelected
+                              ? "bg-[#b45309] border-[#78350f] text-[#fef08a]"
+                              : "border-[#8c5828] bg-[#fffdf9]"
+                              }`}
                           >
                             {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                           </div>
