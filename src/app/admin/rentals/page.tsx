@@ -4,13 +4,11 @@ import { useState, useEffect } from "react";
 import { getRentals, createRental, returnRental } from "@/lib/actions/rentals";
 import { getGames } from "@/lib/actions/games";
 import { getUsers } from "@/lib/actions/users";
-import { RentalWithDetails, GameWithComponents, UserData, RentalStatus } from "@/types";
+import { RentalWithDetails, GameWithComponents, UserData } from "@/types";
 import {
   Plus,
   Repeat,
   RotateCcw,
-  CheckCircle2,
-  Clock,
   AlertTriangle,
   RefreshCw,
   Search,

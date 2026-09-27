@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, FileSignature, RotateCcw, Download, Check, AlertCircle, Puzzle, UserCheck, UserPlus } from "lucide-react";
+import { X, FileSignature, RotateCcw, Download, AlertCircle, Puzzle, UserCheck, UserPlus } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
 import jsPDF from "jspdf";
 import { GameWithComponents, UserData } from "@/types";
@@ -108,7 +108,7 @@ export default function RemitoModal({
     new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
   );
 
-  const [notes, setNotes] = useState<string>(
+  const [notes] = useState<string>(
     "Componentes revisados y contados en presencia del cliente al momento de la entrega."
   );
 

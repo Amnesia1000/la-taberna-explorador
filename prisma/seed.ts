@@ -69,7 +69,7 @@ async function main() {
     },
   });
 
-  const carcassonne = await prisma.game.create({
+  await prisma.game.create({
     data: {
       name: "Carcassonne",
       description:
@@ -121,7 +121,7 @@ async function main() {
     },
   });
 
-  const pandemic = await prisma.game.create({
+  await prisma.game.create({
     data: {
       name: "Pandemic",
       description:
@@ -147,7 +147,7 @@ async function main() {
     },
   });
 
-  const codenames = await prisma.game.create({
+  await prisma.game.create({
     data: {
       name: "Código Secreto (Codenames)",
       description:

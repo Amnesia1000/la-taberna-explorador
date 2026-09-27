@@ -5,7 +5,6 @@ import {
   Repeat,
   CalendarCheck,
   Users,
-  AlertCircle,
   ArrowRight,
   PlusCircle,
   FileSignature,

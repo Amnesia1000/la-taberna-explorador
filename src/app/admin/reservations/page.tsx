@@ -8,8 +8,7 @@ import {
   createReservation,
 } from "@/lib/actions/reservations";
 import { getGames } from "@/lib/actions/games";
-import { getUsers } from "@/lib/actions/users";
-import { ReservationWithDetails, GameWithComponents, UserData } from "@/types";
+import { ReservationWithDetails, GameWithComponents } from "@/types";
 import {
   CalendarCheck,
   CheckCircle2,
@@ -18,14 +17,12 @@ import {
   RefreshCw,
   Search,
   AlertTriangle,
-  ArrowRight,
   X,
 } from "lucide-react";
 
 export default function AdminReservationsPage() {
   const [reservations, setReservations] = useState<ReservationWithDetails[]>([]);
   const [games, setGames] = useState<GameWithComponents[]>([]);
-  const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -48,10 +45,9 @@ export default function AdminReservationsPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [resRes, gamesRes, usersRes] = await Promise.all([
+    const [resRes, gamesRes] = await Promise.all([
       getReservations(),
       getGames(),
-      getUsers(),
     ]);
 
     if (resRes.success && resRes.data) {
@@ -59,9 +55,6 @@ export default function AdminReservationsPage() {
     }
     if (gamesRes.success && gamesRes.data) {
       setGames(gamesRes.data as unknown as GameWithComponents[]);
-    }
-    if (usersRes.success && usersRes.data) {
-      setUsers(usersRes.data as unknown as UserData[]);
     }
     setLoading(false);
   };
@@ -239,8 +232,6 @@ export default function AdminReservationsPage() {
             </thead>
             <tbody className="divide-y divide-zinc-200">
               {filteredReservations.map((res) => {
-                const canConfirm = res.status === "PENDING" && res.game.stock > 0;
-
                 return (
                   <tr key={res.id} className="hover:bg-zinc-50/80 transition">
                     <td className="p-3">

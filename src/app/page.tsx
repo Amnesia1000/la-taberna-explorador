@@ -6,7 +6,7 @@ import GameCard from "@/components/public/GameCard";
 import GameDetailModal from "@/components/public/GameDetailModal";
 import { GameWithComponents } from "@/types";
 import { getGames, getCategories } from "@/lib/actions/games";
-import { Search, Filter, RefreshCw, Compass, Scroll, Shield, Sparkles } from "lucide-react";
+import { Search, Filter, RefreshCw, Scroll } from "lucide-react";
 import { ASSETS } from "@/lib/assets";
 
 export const dynamic = 'force-dynamic';
