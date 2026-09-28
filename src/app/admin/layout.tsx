@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Dices,
@@ -15,9 +15,11 @@ import {
   Menu,
   X,
   Scroll,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 import { ASSETS } from "@/lib/assets";
+import { logoutAdmin } from "@/lib/admin-auth";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -35,7 +37,16 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (pathname === "/admin/login") {
+    return (
+      <div className="min-h-screen bg-[#20120a] text-[#fef3c7] flex flex-col">
+        <div className="p-4 sm:p-8 max-w-7xl w-full mx-auto">{children}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f7f2e7] flex flex-col md:flex-row">
@@ -125,6 +136,19 @@ export default function AdminLayout({
           <div className="text-[10px] font-serif text-[#8a6b52] text-center uppercase tracking-widest pt-1">
             Gremio de Taberneros • v1.0
           </div>
+          <button
+            type="button"
+            onClick={async () => {
+              await logoutAdmin();
+              setSidebarOpen(false);
+              router.push("/admin/login");
+              router.refresh();
+            }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-[#54321d] hover:border-red-400 bg-[#29170e] text-[#d1baa5] hover:text-red-300 text-xs font-tavern uppercase tracking-wider transition rounded-sm"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Cerrar sesión</span>
+          </button>
         </div>
       </aside>
 
