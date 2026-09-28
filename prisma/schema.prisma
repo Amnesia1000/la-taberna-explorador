@@ -10,6 +10,7 @@ datasource db {
 model Game {
   id            String          @id @default(cuid())
   name          String
+  sortName      String          @default("")
   description   String
   category      String
   price         Float
@@ -33,6 +34,7 @@ model Game {
 
   @@index([category])
   @@index([name])
+  @@index([sortName])
   @@index([price])
   @@index([minAge])
   @@index([minPlayers, maxPlayers])

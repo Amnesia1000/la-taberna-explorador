@@ -4,6 +4,8 @@ import path from "path";
 
 const prisma = new PrismaClient();
 
+import { normalizeSortName } from "../src/lib/sort-name";
+
 async function importData() {
   const filePath = path.join(process.cwd(), "exported_data.json");
   if (!fs.existsSync(filePath)) {
@@ -46,6 +48,7 @@ async function importData() {
       create: {
         id: gameData.id,
         name: gameData.name,
+        sortName: normalizeSortName(gameData.name || ""),
         description: gameData.description,
         category: gameData.category,
         price: gameData.price,
@@ -63,6 +66,7 @@ async function importData() {
       },
       update: {
         name: gameData.name,
+        sortName: normalizeSortName(gameData.name || ""),
         description: gameData.description,
         category: gameData.category,
         price: gameData.price,

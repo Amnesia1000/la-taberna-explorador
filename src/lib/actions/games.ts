@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { normalizeSortName } from "@/lib/sort-name";
 import { put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 
@@ -107,7 +108,7 @@ function catalogOrderBy(sort?: string): any {
     case "PUP": return { price: "asc" };
     case "PDOWN": return { price: "desc" };
     case "DUR": return { playtime: "asc" };
-    default: return { name: "asc" };
+    default: return { sortName: "asc" };
   }
 }
 
@@ -253,6 +254,7 @@ export async function saveGame(formData: FormData, id?: string) {
 
     const gameData = {
       name,
+      sortName: normalizeSortName(name),
       description,
       category,
       price,
