@@ -40,7 +40,7 @@ async function importData() {
 
   // 2. Juegos y Componentes
   for (const game of data.games) {
-    const { components, ...gameData } = game;
+    const { components, expansions: _exp, ...gameData } = game;
     await prisma.game.upsert({
       where: { id: game.id },
       create: {
@@ -51,10 +51,15 @@ async function importData() {
         price: gameData.price,
         stock: gameData.stock,
         image: gameData.image,
+        image2: gameData.image2 ?? null,
+        qrManual: gameData.qrManual ?? null,
+        qrVideo: gameData.qrVideo ?? null,
         minPlayers: gameData.minPlayers,
         maxPlayers: gameData.maxPlayers,
         minAge: gameData.minAge,
         playtime: gameData.playtime,
+        maxPlaytime: gameData.maxPlaytime ?? gameData.playtime,
+        hasExpansions: gameData.hasExpansions ?? false,
       },
       update: {
         name: gameData.name,
@@ -63,10 +68,15 @@ async function importData() {
         price: gameData.price,
         stock: gameData.stock,
         image: gameData.image,
+        image2: gameData.image2 ?? undefined,
+        qrManual: gameData.qrManual ?? undefined,
+        qrVideo: gameData.qrVideo ?? undefined,
         minPlayers: gameData.minPlayers,
         maxPlayers: gameData.maxPlayers,
         minAge: gameData.minAge,
         playtime: gameData.playtime,
+        maxPlaytime: gameData.maxPlaytime ?? undefined,
+        hasExpansions: gameData.hasExpansions ?? undefined,
       },
     });
 
@@ -143,6 +153,68 @@ async function importData() {
     });
   }
   console.log(`✓ ${data.reservations.length} reservas sincronizadas.`);
+
+  // 5. Expansiones y Componentes (si el backup las trae)
+  if (Array.isArray((data as any).expansions)) {
+    for (const exp of (data as any).expansions) {
+      const { components, game: _g, ...expData } = exp;
+      await (prisma as any).expansion.upsert({
+        where: { id: exp.id },
+        create: {
+          id: expData.id,
+          gameId: expData.gameId,
+          name: expData.name,
+          description: expData.description,
+          price: expData.price,
+          stock: expData.stock,
+          image: expData.image,
+          image2: expData.image2 ?? null,
+          qrManual: expData.qrManual ?? null,
+          qrVideo: expData.qrVideo ?? null,
+          minPlayers: expData.minPlayers,
+          maxPlayers: expData.maxPlayers,
+          minAge: expData.minAge,
+          playtime: expData.playtime,
+          maxPlaytime: expData.maxPlaytime ?? expData.playtime,
+        },
+        update: {
+          name: expData.name,
+          description: expData.description,
+          price: expData.price,
+          stock: expData.stock,
+          image: expData.image,
+          minPlayers: expData.minPlayers,
+          maxPlayers: expData.maxPlayers,
+          minAge: expData.minAge,
+          playtime: expData.playtime,
+        },
+      });
+
+      if (components) {
+        await (prisma as any).expansionComponents.upsert({
+          where: { expansionId: exp.id },
+          create: {
+            expansionId: exp.id,
+            cards: components.cards,
+            tokens: components.tokens,
+            dice: components.dice,
+            tiles: components.tiles,
+            others: components.others,
+            othersDescription: components.othersDescription,
+          },
+          update: {
+            cards: components.cards,
+            tokens: components.tokens,
+            dice: components.dice,
+            tiles: components.tiles,
+            others: components.others,
+            othersDescription: components.othersDescription,
+          },
+        });
+      }
+    }
+    console.log(`✓ ${(data as any).expansions.length} expansiones sincronizadas.`);
+  }
 
   console.log("¡Importación completada con éxito!");
 }

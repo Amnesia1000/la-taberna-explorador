@@ -18,6 +18,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:export": "tsx prisma/export-data.ts",
+    "db:backup": "tsx prisma/backup.ts",
     "db:import": "tsx prisma/import-data.ts",
     "db:studio": "prisma studio"
   },
