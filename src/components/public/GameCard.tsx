@@ -8,9 +8,11 @@ import { ASSETS } from "@/lib/assets";
 interface GameCardProps {
   game: GameWithComponents & { image2?: string | null };
   onSelect: (game: GameWithComponents) => void;
+  /** Muestra las fotos a color sin necesidad de hover */
+  vivid?: boolean;
 }
 
-export default function GameCard({ game, onSelect }: GameCardProps) {
+export default function GameCard({ game, onSelect, vivid = false }: GameCardProps) {
   // Lista de imágenes disponibles
   const images = [game.image, game.image2].filter((img): img is string => Boolean(img));
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -79,7 +81,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
                 key={src}
                 src={src}
                 alt={`${game.name} - ${idx + 1}`}
-                className={`absolute inset-0 w-full h-full object-cover grayscale contrast-110 group-hover:grayscale-0 group-hover:scale-105 transition-[opacity,transform,filter] duration-1000 ease-in-out motion-reduce:transition-none motion-reduce:transform-none ${idx === currentImageIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
+                className={`absolute inset-0 w-full h-full object-cover contrast-110 group-hover:scale-105 transition-[opacity,transform,filter] duration-1000 ease-in-out motion-reduce:transition-none motion-reduce:transform-none ${vivid ? "" : "md:grayscale md:group-hover:grayscale-0"} ${idx === currentImageIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
                   }`}
               />
             ))
