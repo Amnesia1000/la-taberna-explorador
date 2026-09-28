@@ -243,6 +243,11 @@ span[class*="font-tavern"] {
   display: none;
 }
 
+/* El header sticky nunca debe tapar el elemento con foco al hacer scroll */
+html {
+  scroll-padding-top: 6rem;
+}
+
 /* Custom rustic scrollbars */
 ::-webkit-scrollbar {
   width: 8px;

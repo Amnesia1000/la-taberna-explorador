@@ -16,8 +16,10 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Rotación automática cada 3.5 segundos si hay más de una imagen
+  // (desactivada si el usuario prefiere movimiento reducido)
   useEffect(() => {
     if (images.length <= 1) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -36,12 +38,12 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
     <button
       type="button"
       onClick={() => onSelect(game)}
-      className="group relative w-full text-left focus:outline-none focus:ring-2 focus:ring-[#b45309] rounded-sm transition-all duration-300 hover:-translate-y-1.5"
+      className="group relative w-full text-left focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b45309] rounded-sm transition-[transform] duration-300 hover:-translate-y-1.5"
       aria-label={`Ver ficha de ${game.name}`}
     >
       {/* Ficha frame — aspect ratio ~4:5 matching the PNG */}
       <div
-        className="relative w-full transition-all duration-300 drop-shadow-[0_10px_16px_rgba(0,0,0,0.90)] group-hover:drop-shadow-[0_18px_24px_rgba(0,0,0,0.90)]"
+        className="relative w-full transition-[filter] duration-300 drop-shadow-[0_10px_16px_rgba(0,0,0,0.90)] group-hover:drop-shadow-[0_18px_24px_rgba(0,0,0,0.90)]"
         style={{ aspectRatio: "4/5" }}
       >
 
@@ -60,7 +62,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
             <img
               src={ASSETS.disponible}
               alt="Expansiones disponibles"
-              className="w-full h-auto drop-shadow-[0_8px_12px_rgba(0,0,0,0.7)] group-hover:drop-shadow-[0_10px_16px_rgba(0,0,0,0.85)] transition-all duration-300 group-hover:scale-105"
+              className="w-full h-auto drop-shadow-[0_8px_12px_rgba(0,0,0,0.7)] group-hover:drop-shadow-[0_10px_16px_rgba(0,0,0,0.85)] transition-[filter,transform] duration-300 group-hover:scale-105"
             />
           </div>
         )}
@@ -77,7 +79,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
                 key={src}
                 src={src}
                 alt={`${game.name} - ${idx + 1}`}
-                className={`absolute inset-0 w-full h-full object-cover grayscale contrast-110 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 ease-in-out ${idx === currentImageIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
+                className={`absolute inset-0 w-full h-full object-cover grayscale contrast-110 group-hover:grayscale-0 group-hover:scale-105 transition-[opacity,transform,filter] duration-1000 ease-in-out motion-reduce:transition-none motion-reduce:transform-none ${idx === currentImageIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
                   }`}
               />
             ))
@@ -93,7 +95,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
               {images.map((_, idx) => (
                 <span
                   key={idx}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex
+                  className={`w-1.5 h-1.5 rounded-full transition-[width,background-color] duration-300 ${idx === currentImageIndex
                     ? "bg-[#fde047] w-2.5"
                     : "bg-black/60"
                     }`}
@@ -152,7 +154,7 @@ export default function GameCard({ game, onSelect }: GameCardProps) {
 
           {/* Price */}
           <div className="flex items-baseline gap-1.5 ml-10 relative translate-y-1.5">
-            <span className="text-2xl leading-none">🪙</span>
+            <span className="text-2xl leading-none" aria-hidden="true">🪙</span>
             <span className="font-tavern text-2xl font-extrabold text-[#1a0903]">
               ${game.price.toLocaleString("es-AR")}
             </span>

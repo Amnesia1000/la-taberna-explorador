@@ -77,9 +77,15 @@ export default function CatalogPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent">
+      <a
+        href="#catalogo"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:bg-[#fef3c7] focus:text-[#2c1409] focus:px-4 focus:py-2 focus:rounded-sm focus:font-tavern focus:text-sm"
+      >
+        Saltar al contenido
+      </a>
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+      <main id="catalogo" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
         {/* Tavern Quest Board (Tablón de Anuncios de la Taberna) */}
         <section className="parchment-folio border-4 border-[#733d18] p-6 md:p-8 mb-8 shadow-2xl rounded-sm relative overflow-hidden">
           {/* Iron Rivets in 4 corners */}
@@ -127,17 +133,24 @@ export default function CatalogPage() {
           <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
             {/* Search Input */}
             <div className="relative w-full lg:w-72 shrink-0">
-              <Search className="w-4 h-4 text-[#ca8a04] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+              <Search className="w-4 h-4 text-[#ca8a04] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" aria-hidden="true" />
+              <label htmlFor="catalog-search" className="sr-only">
+                Buscar juego o crónica
+              </label>
               <input
-                type="text"
+                id="catalog-search"
+                name="search"
+                autoComplete="off"
+                type="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar juego o crónica..."
+                placeholder="Buscar juego o crónica…"
                 className="tavern-input !pl-9 pr-8 py-2 text-xs font-serif rounded-sm w-full"
               />
               {searchTerm && (
                 <button
                   type="button"
+                  aria-label="Limpiar búsqueda"
                   onClick={() => setSearchTerm("")}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-tavern text-[#82674e] hover:text-[#2c1a11]"
                 >
@@ -150,13 +163,14 @@ export default function CatalogPage() {
             <div className="flex flex-wrap items-center gap-2 flex-1 lg:justify-end">
               {/* Category */}
               <div className="flex items-center gap-1 bg-[#29170e] border border-[#5a3219] rounded-sm pr-1">
-                <span className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 flex items-center gap-1 font-bold shrink-0">
-                  <Filter className="w-3 h-3 text-[#f59e0b]" /> Categoría:
-                </span>
+                <label htmlFor="filter-category" className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 flex items-center gap-1 font-bold shrink-0 cursor-pointer">
+                  <Filter className="w-3 h-3 text-[#f59e0b]" aria-hidden="true" /> Categoría:
+                </label>
                 <select
+                  id="filter-category"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="bg-transparent text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer"
+                  className="bg-[#29170e] text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#f59e0b] rounded-sm [&>option]:bg-[#29170e]"
                 >
                   <option value="TODOS">TODOS ({games.length})</option>
                   {categories.map((cat) => (
@@ -167,13 +181,14 @@ export default function CatalogPage() {
 
               {/* Players */}
               <div className="flex items-center gap-1 bg-[#29170e] border border-[#5a3219] rounded-sm pr-1">
-                <span className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 flex items-center gap-1 font-bold shrink-0">
-                  <span>⚔</span> Jugadores:
-                </span>
+                <label htmlFor="filter-players" className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 flex items-center gap-1 font-bold shrink-0 cursor-pointer">
+                  <span aria-hidden="true">⚔</span> Jugadores:
+                </label>
                 <select
+                  id="filter-players"
                   value={playerFilter}
                   onChange={(e) => setPlayerFilter(e.target.value)}
-                  className="bg-transparent text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer"
+                  className="bg-[#29170e] text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#f59e0b] rounded-sm [&>option]:bg-[#29170e]"
                 >
                   <option value="ALL">Todos</option>
                   <option value="SOLO">1 Jugador</option>
@@ -184,13 +199,14 @@ export default function CatalogPage() {
 
               {/* Age */}
               <div className="flex items-center gap-1 bg-[#29170e] border border-[#5a3219] rounded-sm pr-1">
-                <span className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 font-bold shrink-0">
+                <label htmlFor="filter-age" className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 font-bold shrink-0 cursor-pointer">
                   Edad:
-                </span>
+                </label>
                 <select
+                  id="filter-age"
                   value={ageFilter}
                   onChange={(e) => setAgeFilter(e.target.value)}
-                  className="bg-transparent text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer"
+                  className="bg-[#29170e] text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#f59e0b] rounded-sm [&>option]:bg-[#29170e]"
                 >
                   <option value="TODAS">Todas</option>
                   <option value="+6">+6 Años</option>
@@ -201,13 +217,14 @@ export default function CatalogPage() {
 
               {/* Price */}
               <div className="flex items-center gap-1 bg-[#29170e] border border-[#5a3219] rounded-sm pr-1">
-                <span className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 font-bold shrink-0">
+                <label htmlFor="filter-price" className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 font-bold shrink-0 cursor-pointer">
                   Precio:
-                </span>
+                </label>
                 <select
+                  id="filter-price"
                   value={priceFilter}
                   onChange={(e) => setPriceFilter(e.target.value)}
-                  className="bg-transparent text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer"
+                  className="bg-[#29170e] text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#f59e0b] rounded-sm [&>option]:bg-[#29170e]"
                 >
                   <option value="TODOS">Todos</option>
                   <option value="$">$ (hasta 6k)</option>
@@ -223,7 +240,7 @@ export default function CatalogPage() {
         {loading ? (
           <div className="parchment-folio p-16 text-center rounded-sm border-2 border-[#8c5828]">
             <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[#b45309] mb-2" />
-            <p className="font-tavern text-xs text-[#78593f] uppercase">Cargando crónicas del grimorio...</p>
+            <p className="font-tavern text-xs text-[#78593f] uppercase">Cargando crónicas del grimorio…</p>
           </div>
         ) : filteredGames.length === 0 ? (
           <div className="parchment-folio p-16 text-center rounded-sm border-2 border-[#8c5828]">
@@ -248,15 +265,18 @@ export default function CatalogPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGames.map((game) => (
-              <GameCard
-                key={game.id}
-                game={game}
-                onSelect={(g) => setSelectedGame(g)}
-              />
-            ))}
-          </div>
+          <>
+            <h2 className="sr-only">Juegos disponibles</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredGames.map((game) => (
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  onSelect={(g) => setSelectedGame(g)}
+                />
+              ))}
+            </div>
+          </>
         )}
       </main>
 
