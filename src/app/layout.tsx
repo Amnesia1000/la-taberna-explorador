@@ -15,9 +15,37 @@ const crimson = Crimson_Pro({
   display: "swap",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "La Taberna del Explorador // Alquiler de Juegos de Mesa",
-  description: "Alquiler y catálogo de juegos de mesa en la mítica Taberna del Explorador.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "La Taberna del Explorador // Alquiler de Juegos de Mesa",
+    template: "%s // La Taberna del Explorador",
+  },
+  description:
+    "Alquiler y catálogo de juegos de mesa en la mítica Taberna del Explorador.",
+  openGraph: {
+    type: "website",
+    locale: "es_AR",
+    siteName: "La Taberna del Explorador",
+    title: "La Taberna del Explorador // Alquiler de Juegos de Mesa",
+    description:
+      "Alquiler y catálogo de juegos de mesa en la mítica Taberna del Explorador.",
+    images: [{ url: "/Logo.png", width: 478, height: 496 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "La Taberna del Explorador // Alquiler de Juegos de Mesa",
+    description:
+      "Alquiler y catálogo de juegos de mesa en la mítica Taberna del Explorador.",
+    images: ["/Logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export const viewport = {

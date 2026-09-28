@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Users, Clock, Baby } from "lucide-react";
 import { GameWithComponents } from "@/types";
 import { ASSETS } from "@/lib/assets";
@@ -10,9 +11,13 @@ interface GameCardProps {
   onSelect: (game: GameWithComponents) => void;
   /** Muestra las fotos a color sin necesidad de hover */
   vivid?: boolean;
+  /** Muestra sello de disponibilidad sobre la imagen */
+  showAvailability?: boolean;
+  /** Muestra mini-etiquetas bajo jugadores/edad/duración */
+  labeledStats?: boolean;
 }
 
-export default function GameCard({ game, onSelect, vivid = false }: GameCardProps) {
+export default function GameCard({ game, onSelect, vivid = false, showAvailability = false, labeledStats = false }: GameCardProps) {
   // Lista de imágenes disponibles
   const images = [game.image, game.image2].filter((img): img is string => Boolean(img));
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -50,20 +55,23 @@ export default function GameCard({ game, onSelect, vivid = false }: GameCardProp
       >
 
         {/* The ficha PNG frame on top (z-10) */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={ASSETS.ficha}
+        <Image
+          src={ASSETS.ficha.split("?")[0]}
           alt=""
           aria-hidden="true"
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-10"
         />
 
         {/* ── EXPANSIONES DISPONIBLES ── */}
         {((game.expansions && game.expansions.length > 0) || game.hasExpansions || (game._count?.expansions ?? 0) > 0) && (
           <div className="absolute z-30 pointer-events-none" style={{ top: "-1%", right: "30%", width: "35%" }}>
-            <img
-              src={ASSETS.disponible}
+            <Image
+              src={ASSETS.disponible.split("?")[0]}
               alt="Expansiones disponibles"
+              width={174}
+              height={76}
               className="w-full h-auto drop-shadow-[0_8px_12px_rgba(0,0,0,0.7)] group-hover:drop-shadow-[0_10px_16px_rgba(0,0,0,0.85)] transition-[filter,transform] duration-300 group-hover:scale-105"
             />
           </div>
@@ -76,11 +84,12 @@ export default function GameCard({ game, onSelect, vivid = false }: GameCardProp
         >
           {images.length > 0 ? (
             images.map((src, idx) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 key={src}
                 src={src}
                 alt={`${game.name} - ${idx + 1}`}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className={`absolute inset-0 w-full h-full object-cover contrast-110 group-hover:scale-105 transition-[opacity,transform,filter] duration-1000 ease-in-out motion-reduce:transition-none motion-reduce:transform-none ${vivid ? "" : "md:grayscale md:group-hover:grayscale-0"} ${idx === currentImageIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
                   }`}
               />
@@ -105,7 +114,20 @@ export default function GameCard({ game, onSelect, vivid = false }: GameCardProp
               ))}
             </div>
           )}
+
         </div>
+
+        {/* Sello de disponibilidad (opt-in): misma columna que la categoría, zona baja de la foto */}
+        {showAvailability && (
+          <div
+            className="absolute z-20"
+            style={{ top: "46%", left: "14.5%" }}
+          >
+            <span className={`font-tavern text-[11px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-sm shadow-md backdrop-blur-[2px] ${game.stock > 0 ? "bg-[#14532d]/70 text-[#d1fae5]" : "bg-[#7f1d1d]/70 text-[#fecaca]"}`}>
+              {game.stock > 0 ? "● Disponible" : "● Agotado"}
+            </span>
+          </div>
+        )}
 
         {/* ── CATEGORÍA — esquina superior izquierda de la imagen ── */}
         <div
@@ -139,18 +161,21 @@ export default function GameCard({ game, onSelect, vivid = false }: GameCardProp
               <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
                 {game.minPlayers === game.maxPlayers ? game.minPlayers : `${game.minPlayers}-${game.maxPlayers}`}
               </span>
+              {labeledStats && <span className="text-[10px] font-bold uppercase tracking-wide text-[#5a3a22] leading-none -mt-0.5">jugadores</span>}
             </div>
             <div className="flex flex-col items-center gap-1">
               <Baby className="w-5 h-5 text-[#3b1a08]" />
               <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
                 +{game.minAge}
               </span>
+              {labeledStats && <span className="text-[10px] font-bold uppercase tracking-wide text-[#5a3a22] leading-none -mt-0.5">edad</span>}
             </div>
             <div className="flex flex-col items-center gap-1">
               <Clock className="w-5 h-5 text-[#3b1a08]" />
               <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
                 {formattedPlaytime}
               </span>
+              {labeledStats && <span className="text-[10px] font-bold uppercase tracking-wide text-[#5a3a22] leading-none -mt-0.5">duración</span>}
             </div>
           </div>
 

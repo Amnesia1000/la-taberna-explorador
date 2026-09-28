@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Flame } from "lucide-react";
 import { ASSETS } from "@/lib/assets";
 
@@ -10,11 +11,12 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-3 group">
           {/* Logo image */}
           <div className="relative w-12 h-12 sm:w-14 sm:h-14 shrink-0 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={ASSETS.logo}
+            <Image
+              src={ASSETS.logo.split("?")[0]}
               alt="Logo La Taberna del Explorador"
-              className="w-full h-full object-contain"
+              fill
+              sizes="56px"
+              className="object-contain"
             />
           </div>
 

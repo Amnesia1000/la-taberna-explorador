@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useId } from "react";
+import Image from "next/image";
 import { X, Users, Clock, Baby, MessageSquare, Check } from "lucide-react";
 import { GameWithComponents } from "@/types";
 import { ASSETS } from "@/lib/assets";
@@ -8,14 +9,63 @@ import { ASSETS } from "@/lib/assets";
 interface GameDetailModalProps {
   game: GameWithComponents | null;
   onClose: () => void;
+  /** Habilita cierre con Escape y clic en el fondo */
+  dismissable?: boolean;
+  /** Muestra el sello de disponibilidad sobre la foto */
+  showAvailabilitySeal?: boolean;
 }
 
-export default function GameDetailModal({ game, onClose }: GameDetailModalProps) {
+export default function GameDetailModal({ game, onClose, dismissable = false, showAvailabilitySeal = true }: GameDetailModalProps) {
   const [selectedExpansions, setSelectedExpansions] = useState<string[]>([]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const previouslyFocused = useRef<Element | null>(null);
 
   useEffect(() => {
     setSelectedExpansions([]);
   }, [game?.id]);
+
+  // Cierre con Escape (opt-in)
+  useEffect(() => {
+    if (!dismissable || !game) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [dismissable, game, onClose]);
+
+  // Bloqueo de scroll del fondo + foco inicial + retorno de foco al cerrar
+  useEffect(() => {
+    if (!game) return;
+    previouslyFocused.current = document.activeElement;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialogRef.current?.querySelector<HTMLElement>("button")?.focus();
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      (previouslyFocused.current as HTMLElement | null)?.focus?.();
+    };
+  }, [game]);
+
+  // Focus trap: el Tab cicla dentro del diálogo
+  const onTrapTab = (e: React.KeyboardEvent) => {
+    if (e.key !== "Tab" || !dialogRef.current) return;
+    const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const list = Array.from(focusables).filter((el) => !el.hasAttribute("disabled"));
+    if (list.length === 0) return;
+    const first = list[0];
+    const last = list[list.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
 
   if (!game) return null;
 
@@ -49,8 +99,17 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
       : `${game.playtime}m`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-[#140a05]/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full sm:max-w-2xl parchment-folio border-t-4 sm:border-4 border-[#783e18] shadow-2xl max-h-[95vh] sm:max-h-[92vh] flex flex-col overflow-hidden sm:rounded-sm rounded-t-xl">
+    <div
+      onClick={dismissable ? (e) => { if (e.target === e.currentTarget) onClose(); } : undefined}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-[#140a05]/80 backdrop-blur-sm animate-in fade-in duration-200"
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onKeyDown={onTrapTab}
+        className="relative w-full sm:max-w-2xl parchment-folio border-t-4 sm:border-4 border-[#783e18] shadow-2xl max-h-[95vh] sm:max-h-[92vh] flex flex-col overflow-hidden sm:rounded-sm rounded-t-xl">
         {/* Brass Corner Accents */}
         <div className="brass-corner-tl" />
         <div className="brass-corner-tr" />
@@ -60,8 +119,8 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
         {/* Modal Header - Heavy Timber Header */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 wood-beam border-b-2 border-[#8c5828] flex items-center justify-between text-[#fef3c7] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-sm flex items-center justify-center p-0.5">
-              <img src={ASSETS.logo} alt="Logo" className="w-full h-full object-contain" />
+            <div className="relative w-8 h-8 rounded-sm flex items-center justify-center p-0.5">
+              <Image src={ASSETS.logo.split("?")[0]} alt="Logo" fill sizes="32px" className="object-contain" />
             </div>
             <span className="font-tavern text-xs uppercase bg-[#4a2612] text-[#fef08a] border border-[#a16207] px-2.5 py-0.5 font-bold tracking-wider rounded-sm">
               {game.category}
@@ -86,11 +145,12 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
               {/* Image Container with Wooden Frame */}
               <div className="border-3 border-[#783e18] aspect-[16/9] sm:aspect-[4/3] bg-[#291307] overflow-hidden relative shadow-md rounded-sm">
                 {game.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={game.image}
                     alt={game.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center font-tavern text-xs text-[#d6b080]">
@@ -99,6 +159,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                 )}
 
                 {/* Wax Seal Stamp in Image */}
+                {showAvailabilitySeal && (
                 <div className="absolute bottom-2.5 left-2.5">
                   {isAvailable ? (
                     <span className="wax-seal-green font-tavern text-[10px] uppercase px-2.5 py-1 flex items-center gap-1.5 font-bold tracking-wider rounded-sm">
@@ -112,14 +173,14 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                     </span>
                   )}
                 </div>
+                )}
               </div>
 
               {/* ── SECCIÓN EXPANSIONES (Debajo de la imagen) ── */}
               {game.expansions && game.expansions.length > 0 && (
                 <div className="pt-3 border-t-2 border-dashed border-[#c8a774]">
                   <div className="flex justify-center mb-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={ASSETS.amplia} alt="Amplía tu experiencia" className="h-16 sm:h-20 object-contain drop-shadow-[0_8px_12px_rgba(0,0,0,0.6)]" />
+                    <Image src={ASSETS.amplia.split("?")[0]} alt="Amplía tu experiencia" width={322} height={88} className="h-16 sm:h-20 w-auto object-contain drop-shadow-[0_8px_12px_rgba(0,0,0,0.6)]" />
                   </div>
                   <div className="flex flex-col gap-2.5">
                     {game.expansions.map((exp) => {
@@ -151,9 +212,8 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                           </div>
 
                           {exp.image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <div className="w-12 h-12 shrink-0 border border-[#8c5828] rounded-sm overflow-hidden bg-[#291307]">
-                              <img src={exp.image} alt={exp.name} className="w-full h-full object-cover" />
+                            <div className="relative w-12 h-12 shrink-0 border border-[#8c5828] rounded-sm overflow-hidden bg-[#291307]">
+                              <Image src={exp.image} alt={exp.name} fill sizes="48px" className="object-cover" />
                             </div>
                           ) : (
                             <div className="w-12 h-12 shrink-0 border border-[#8c5828] rounded-sm overflow-hidden bg-[#3d2011] flex items-center justify-center text-[#d6b080] font-tavern text-[8px] text-center p-1 leading-tight">
@@ -190,7 +250,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
                   <span className="text-xs">✦</span>
                 </div>
 
-                <h2 className="font-tavern text-2xl sm:text-3xl font-bold uppercase tracking-wide text-[#2c1409] leading-tight">
+                <h2 id={titleId} className="font-tavern text-2xl sm:text-3xl font-bold uppercase tracking-wide text-[#2c1409] leading-tight">
                   {game.name}
                 </h2>
 
@@ -261,7 +321,7 @@ export default function GameDetailModal({ game, onClose }: GameDetailModalProps)
             className="tavern-btn-gold flex items-center gap-2 rounded-sm"
           >
             <MessageSquare className="w-4 h-4 text-[#fef08a]" />
-            <span>Alquilar por WhatsApp</span>
+            <span>{isAvailable ? "Alquilar por WhatsApp" : "Consultar disponibilidad"}</span>
           </a>
         </div>
       </div>

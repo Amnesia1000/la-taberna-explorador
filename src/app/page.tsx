@@ -1,79 +1,162 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/public/Navbar";
 import GameCard from "@/components/public/GameCard";
 import GameDetailModal from "@/components/public/GameDetailModal";
 import { GameWithComponents } from "@/types";
-import { getGames, getCategories } from "@/lib/actions/games";
-import { Search, Filter, RefreshCw, Scroll } from "lucide-react";
+import { getCatalog, getCategories, getGameById } from "@/lib/actions/games";
+import { Search, Filter, Scroll, ChevronLeft, ChevronRight } from "lucide-react";
 import { ASSETS } from "@/lib/assets";
+import Image from "next/image";
 
-export const dynamic = 'force-dynamic';
+const PAGE_SIZE = 9;
+
+// Lee el estado inicial desde la URL (?cat=&q=&jug=&edad=&precio=&orden=&pag=&juego=)
+function readUrlState() {
+  const p = typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
+  return {
+    cat: p.get("cat") ?? "TODOS",
+    q: p.get("q") ?? "",
+    jug: p.get("jug") ?? "ALL",
+    edad: p.get("edad") ?? "TODAS",
+    precio: p.get("precio") ?? "TODOS",
+    orden: p.get("orden") ?? "AZ",
+    pag: Math.max(1, parseInt(p.get("pag") ?? "1", 10) || 1),
+    juego: p.get("juego") ?? "",
+  };
+}
+
+function CatalogSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-hidden="true">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="relative w-full animate-pulse"
+          style={{ aspectRatio: "4/5" }}
+        >
+          <div className="absolute inset-0 bg-[#e9dcc3]/60 border-2 border-[#c8a774] rounded-sm" />
+          <div className="absolute left-[13%] right-[9%] top-[5%] h-[50%] bg-[#3d2011]/30 rounded-sm" />
+          <div className="absolute left-[14%] right-[10%] top-[62%] h-4 bg-[#8c5828]/30 rounded-sm" />
+          <div className="absolute left-[25%] right-[25%] top-[70%] h-3 bg-[#8c5828]/20 rounded-sm" />
+          <div className="absolute left-[14%] bottom-[8%] h-7 w-24 bg-[#8c5828]/30 rounded-sm" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function CatalogPage() {
   const [games, setGames] = useState<GameWithComponents[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("TODOS");
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [playerFilter, setPlayerFilter] = useState<string>("ALL");
-  const [ageFilter, setAgeFilter] = useState<string>("TODAS");
-  const [priceFilter, setPriceFilter] = useState<string>("TODOS");
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => readUrlState().cat);
+  const [searchTerm, setSearchTerm] = useState<string>(() => readUrlState().q);
+  const [debouncedQ, setDebouncedQ] = useState<string>(() => readUrlState().q);
+  const [playerFilter, setPlayerFilter] = useState<string>(() => readUrlState().jug);
+  const [ageFilter, setAgeFilter] = useState<string>(() => readUrlState().edad);
+  const [priceFilter, setPriceFilter] = useState<string>(() => readUrlState().precio);
+  const [sortKey, setSortKey] = useState<string>(() => readUrlState().orden);
+  const [page, setPage] = useState<number>(() => readUrlState().pag);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalFiltered, setTotalFiltered] = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
   const [selectedGame, setSelectedGame] = useState<GameWithComponents | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const fetchData = async () => {
-    setLoading(true);
-    const [gamesRes, catRes] = await Promise.all([
-      getGames(),
-      getCategories(),
-    ]);
-
-    if (gamesRes.success && gamesRes.data) {
-      setGames(gamesRes.data as unknown as GameWithComponents[]);
-    }
-    if (catRes.success && catRes.data) {
-      setCategories(catRes.data);
-    }
-    setLoading(false);
-  };
-
+  // Debounce de búsqueda para no golpear la DB en cada tecla
   useEffect(() => {
-    fetchData();
+    const t = setTimeout(() => setDebouncedQ(searchTerm), 350);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  // Categorías (una vez)
+  useEffect(() => {
+    (async () => {
+      const catRes = await getCategories();
+      if (catRes.success && catRes.data) setCategories(catRes.data);
+    })();
   }, []);
 
-  const filteredGames = useMemo(() => {
-    return games
-      .filter((game) => {
-        // Category filter
-        if (selectedCategory !== "TODOS" && game.category !== selectedCategory) {
-          return false;
-        }
-        // Search filter
-        if (searchTerm.trim() !== "") {
-          const term = searchTerm.toLowerCase();
-          const matchesName = game.name.toLowerCase().includes(term);
-          const matchesDesc = game.description.toLowerCase().includes(term);
-          if (!matchesName && !matchesDesc) return false;
-        }
-        // Player filter
-        if (playerFilter === "SOLO" && game.minPlayers > 1) return false;
-        if (playerFilter === "2P" && (game.minPlayers > 2 || game.maxPlayers < 2)) return false;
-        if (playerFilter === "PARTY" && game.maxPlayers < 5) return false;
+  // Catálogo paginado desde el servidor
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const res = await getCatalog({
+        category: selectedCategory,
+        q: debouncedQ,
+        players: playerFilter,
+        age: ageFilter,
+        price: priceFilter,
+        sort: sortKey,
+        page,
+        pageSize: PAGE_SIZE,
+      });
+      if (cancelled) return;
+      if (res.success) {
+        setGames(res.data as unknown as GameWithComponents[]);
+        setTotalPages(res.totalPages ?? 1);
+        setTotalFiltered(res.total ?? 0);
+        setGrandTotal(res.grandTotal ?? 0);
+      }
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedCategory, debouncedQ, playerFilter, ageFilter, priceFilter, sortKey, page]);
 
-        // Age filter
-        if (ageFilter === "+6" && game.minAge < 6) return false;
-        if (ageFilter === "+10" && game.minAge < 10) return false;
-        if (ageFilter === "+14" && game.minAge < 14) return false;
+  // Deep link ?juego=<id>: abre la ficha aunque no esté en la página actual
+  useEffect(() => {
+    const juegoId = readUrlState().juego;
+    if (!juegoId) return;
+    if (games.some((g) => g.id === juegoId)) {
+      const found = games.find((g) => g.id === juegoId) ?? null;
+      setSelectedGame(found);
+      return;
+    }
+    (async () => {
+      const res = await getGameById(juegoId);
+      if (res.success && res.data) setSelectedGame(res.data as unknown as GameWithComponents);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-        // Price filter
-        if (priceFilter === "$" && game.price > 6000) return false;
-        if (priceFilter === "$$" && (game.price < 7000 || game.price > 15000)) return false;
-        if (priceFilter === "$$$" && game.price <= 15000) return false;
+  // Refleja filtros, orden, página y ficha abierta en la URL (compartibles)
+  useEffect(() => {
+    if (loading) return;
+    const p = new URLSearchParams();
+    if (selectedCategory !== "TODOS") p.set("cat", selectedCategory);
+    if (debouncedQ.trim() !== "") p.set("q", debouncedQ.trim());
+    if (playerFilter !== "ALL") p.set("jug", playerFilter);
+    if (ageFilter !== "TODAS") p.set("edad", ageFilter);
+    if (priceFilter !== "TODOS") p.set("precio", priceFilter);
+    if (sortKey !== "AZ") p.set("orden", sortKey);
+    if (page > 1) p.set("pag", String(page));
+    if (selectedGame) p.set("juego", selectedGame.id);
+    const qs = p.toString();
+    window.history.replaceState(null, "", qs ? `/?${qs}` : "/");
+  }, [loading, selectedCategory, debouncedQ, playerFilter, ageFilter, priceFilter, sortKey, page, selectedGame]);
 
-        return true;
-      })
-      .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
-  }, [games, selectedCategory, searchTerm, playerFilter, ageFilter, priceFilter]);
+  const resetFilters = () => {
+    setSelectedCategory("TODOS");
+    setSearchTerm("");
+    setDebouncedQ("");
+    setPlayerFilter("ALL");
+    setAgeFilter("TODAS");
+    setPriceFilter("TODOS");
+    setSortKey("AZ");
+    setPage(1);
+  };
+
+  const pageNumbers = (() => {
+    const nums: number[] = [];
+    const from = Math.max(1, Math.min(page - 2, totalPages - 4));
+    const to = Math.min(totalPages, from + 4);
+    for (let n = from; n <= to; n++) nums.push(n);
+    return nums;
+  })();
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent">
@@ -94,7 +177,7 @@ export default function CatalogPage() {
                 Catálogo de juegos &amp; expediciones
               </h1>
               <p className="text-xs font-serif text-[#6b4c33] mt-1">
-                {games.length} crónicas · {categories.length} categorías · Alquiler por fin de semana o semana completa
+                {grandTotal} crónicas · {categories.length} categorías · Alquiler por fin de semana o semana completa
               </p>
             </div>
             <div className="inline-flex items-center gap-2 border-2 border-[#b45309] bg-[#fffdf9] px-2 py-0.5 text-[9px] md:px-2.5 md:py-1 md:text-[10px] font-tavern tracking-widest uppercase text-[#78350f] rounded-sm shadow-md shrink-0">
@@ -109,7 +192,7 @@ export default function CatalogPage() {
         <section className="wood-beam p-3 sm:p-5 mb-6 sm:mb-8 space-y-3 sm:space-y-4 rounded-sm shadow-xl text-[#fef3c7] border-2 border-[#8c5828]">
           <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
             {/* Search Input */}
-            <div className="relative w-full lg:w-72 shrink-0">
+            <div className="relative w-full lg:w-56 shrink-0">
               <Search className="w-4 h-4 text-[#ca8a04] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" aria-hidden="true" />
               <label htmlFor="catalog-search" className="sr-only">
                 ¿Qué crónica buscás?
@@ -120,7 +203,10 @@ export default function CatalogPage() {
                 autoComplete="off"
                 type="search"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1);
+                }}
                 placeholder="¿Qué crónica buscás…?"
                 className="tavern-input !pl-9 pr-8 py-2 text-xs font-serif rounded-sm w-full"
               />
@@ -128,7 +214,10 @@ export default function CatalogPage() {
                 <button
                   type="button"
                   aria-label="Limpiar búsqueda"
-                  onClick={() => setSearchTerm("")}
+                  onClick={() => {
+                    setSearchTerm("");
+                    setPage(1);
+                  }}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-tavern text-[#82674e] hover:text-[#2c1a11]"
                 >
                   ✕
@@ -137,7 +226,7 @@ export default function CatalogPage() {
             </div>
 
             {/* Select Filters Group */}
-            <div className="flex flex-wrap items-center gap-2 flex-1 lg:justify-end">
+            <div className="flex flex-wrap items-center gap-1.5 flex-1 lg:justify-end">
               {/* Category */}
               <div className="flex items-center gap-1 bg-[#29170e] border border-[#5a3219] rounded-sm pr-1">
                 <label htmlFor="filter-category" className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 flex items-center gap-1 font-bold shrink-0 cursor-pointer">
@@ -146,10 +235,13 @@ export default function CatalogPage() {
                 <select
                   id="filter-category"
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedCategory(e.target.value);
+                    setPage(1);
+                  }}
                   className="bg-[#29170e] text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#f59e0b] rounded-sm [&>option]:bg-[#29170e]"
                 >
-                  <option value="TODOS">TODOS ({games.length})</option>
+                  <option value="TODOS">TODOS ({grandTotal})</option>
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
@@ -164,7 +256,10 @@ export default function CatalogPage() {
                 <select
                   id="filter-players"
                   value={playerFilter}
-                  onChange={(e) => setPlayerFilter(e.target.value)}
+                  onChange={(e) => {
+                    setPlayerFilter(e.target.value);
+                    setPage(1);
+                  }}
                   className="bg-[#29170e] text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#f59e0b] rounded-sm [&>option]:bg-[#29170e]"
                 >
                   <option value="ALL">Todos</option>
@@ -182,7 +277,10 @@ export default function CatalogPage() {
                 <select
                   id="filter-age"
                   value={ageFilter}
-                  onChange={(e) => setAgeFilter(e.target.value)}
+                  onChange={(e) => {
+                    setAgeFilter(e.target.value);
+                    setPage(1);
+                  }}
                   className="bg-[#29170e] text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#f59e0b] rounded-sm [&>option]:bg-[#29170e]"
                 >
                   <option value="TODAS">Todas</option>
@@ -200,7 +298,10 @@ export default function CatalogPage() {
                 <select
                   id="filter-price"
                   value={priceFilter}
-                  onChange={(e) => setPriceFilter(e.target.value)}
+                  onChange={(e) => {
+                    setPriceFilter(e.target.value);
+                    setPage(1);
+                  }}
                   className="bg-[#29170e] text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#f59e0b] rounded-sm [&>option]:bg-[#29170e]"
                 >
                   <option value="TODOS">Todos</option>
@@ -209,17 +310,38 @@ export default function CatalogPage() {
                   <option value="$$$">$$$ (+15k)</option>
                 </select>
               </div>
+
+              {/* Sort */}
+              <div className="flex items-center gap-1 bg-[#29170e] border border-[#5a3219] rounded-sm pr-1">
+                <label htmlFor="filter-sort" className="text-[10px] sm:text-xs font-tavern text-[#e2b17b] uppercase pl-2 font-bold shrink-0 cursor-pointer">
+                  Orden:
+                </label>
+                <select
+                  id="filter-sort"
+                  value={sortKey}
+                  onChange={(e) => {
+                    setSortKey(e.target.value);
+                    setPage(1);
+                  }}
+                  className="bg-[#29170e] text-white font-tavern uppercase text-xs py-1.5 outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#f59e0b] rounded-sm [&>option]:bg-[#29170e]"
+                >
+                  <option value="AZ">A–Z</option>
+                  <option value="PUP">Precio ↑</option>
+                  <option value="PDOWN">Precio ↓</option>
+                  <option value="DUR">Duración</option>
+                </select>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Catalog Grid */}
         {loading ? (
-          <div className="parchment-folio p-16 text-center rounded-sm border-2 border-[#8c5828]">
-            <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[#b45309] mb-2" />
-            <p className="font-tavern text-xs text-[#78593f] uppercase">Cargando crónicas del grimorio…</p>
-          </div>
-        ) : filteredGames.length === 0 ? (
+          <>
+            <p className="sr-only" role="status">Cargando crónicas del grimorio…</p>
+            <CatalogSkeleton />
+          </>
+        ) : games.length === 0 ? (
           <div className="parchment-folio p-16 text-center rounded-sm border-2 border-[#8c5828]">
             <Scroll className="w-12 h-12 text-[#b45309] mx-auto mb-3" />
             <h3 className="font-tavern text-base uppercase font-bold text-[#3b2314]">
@@ -229,13 +351,7 @@ export default function CatalogPage() {
               Intenta cambiar los filtros de categoría o el término de búsqueda para encontrar tu aventura.
             </p>
             <button
-              onClick={() => {
-                setSelectedCategory("TODOS");
-                setSearchTerm("");
-                setPlayerFilter("ALL");
-                setAgeFilter("TODAS");
-                setPriceFilter("TODOS");
-              }}
+              onClick={resetFilters}
               className="mt-4 tavern-btn-medieval rounded-sm"
             >
               Restablecer filtros
@@ -245,19 +361,59 @@ export default function CatalogPage() {
           <>
             <h2 className="sr-only">Juegos disponibles</h2>
             <p aria-live="polite" className="text-right font-tavern text-xs text-[#e2b17b] uppercase tracking-wider mb-3 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-              {filteredGames.length === 1
+              {totalFiltered === 1
                 ? "1 aventura a la vista"
-                : `${filteredGames.length} aventuras a la vista`}
+                : `${totalFiltered} aventuras a la vista`}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredGames.map((game) => (
+              {games.map((game) => (
                 <GameCard
                   key={game.id}
                   game={game}
+                  showAvailability
+                  labeledStats
                   onSelect={(g) => setSelectedGame(g)}
                 />
               ))}
             </div>
+
+            {totalPages > 1 && (
+              <nav aria-label="Paginación del catálogo" className="mt-8 flex items-center justify-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  aria-label="Página anterior"
+                  className="p-2 rounded-sm border-2 border-[#8c5828] bg-[#29170e] text-[#fef3c7] disabled:opacity-40 hover:bg-[#4a2612] focus-visible:ring-2 focus-visible:ring-[#f59e0b]"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {pageNumbers.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setPage(n)}
+                    aria-label={`Ir a la página ${n}`}
+                    aria-current={n === page ? "page" : undefined}
+                    className={`min-w-9 px-2 py-1.5 rounded-sm border-2 font-tavern text-sm font-bold focus-visible:ring-2 focus-visible:ring-[#f59e0b] ${n === page
+                      ? "border-[#f59e0b] bg-[#f59e0b] text-[#29170e]"
+                      : "border-[#8c5828] bg-[#29170e] text-[#fef3c7] hover:bg-[#4a2612]"
+                      }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  aria-label="Página siguiente"
+                  className="p-2 rounded-sm border-2 border-[#8c5828] bg-[#29170e] text-[#fef3c7] disabled:opacity-40 hover:bg-[#4a2612] focus-visible:ring-2 focus-visible:ring-[#f59e0b]"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </nav>
+            )}
           </>
         )}
       </main>
@@ -265,6 +421,8 @@ export default function CatalogPage() {
       {/* Detail Modal */}
       <GameDetailModal
         game={selectedGame}
+        dismissable
+        showAvailabilitySeal={false}
         onClose={() => setSelectedGame(null)}
       />
 
@@ -272,7 +430,9 @@ export default function CatalogPage() {
       <footer className="wood-beam border-t-4 border-[#8c5828] mt-16 py-8 text-center text-xs font-serif text-[#d6b080]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 font-tavern text-sm text-[#fffdfa] font-bold">
-            <img src={ASSETS.logo} alt="Logo" className="w-5 h-5 opacity-90" />
+            <span className="relative inline-block w-5 h-5 opacity-90">
+              <Image src={ASSETS.logo.split("?")[0]} alt="Logo" fill sizes="20px" className="object-contain" />
+            </span>
             <span>LA TABERNA DEL EXPLORADOR</span>
           </div>
           <span className="text-xs text-[#e2b17b] font-serif">
