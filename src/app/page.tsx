@@ -97,7 +97,7 @@ export default function CatalogPage() {
                 {games.length} crónicas · {categories.length} categorías · Alquiler por fin de semana o semana completa
               </p>
             </div>
-            <div className="hidden md:inline-flex items-center gap-2 border-2 border-[#b45309] bg-[#fffdf9] px-2.5 py-1 text-[10px] font-tavern tracking-widest uppercase text-[#78350f] rounded-sm shadow-md shrink-0">
+            <div className="inline-flex items-center gap-2 border-2 border-[#b45309] bg-[#fffdf9] px-2 py-0.5 text-[9px] md:px-2.5 md:py-1 md:text-[10px] font-tavern tracking-widest uppercase text-[#78350f] rounded-sm shadow-md shrink-0">
               <span className="text-amber-600 font-bold" aria-hidden="true">⚜</span>
               <span>Tablón oficial de misiones</span>
               <span className="text-amber-600 font-bold" aria-hidden="true">⚜</span>
@@ -112,7 +112,7 @@ export default function CatalogPage() {
             <div className="relative w-full lg:w-72 shrink-0">
               <Search className="w-4 h-4 text-[#ca8a04] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" aria-hidden="true" />
               <label htmlFor="catalog-search" className="sr-only">
-                Buscar juego o crónica
+                ¿Qué crónica buscás?
               </label>
               <input
                 id="catalog-search"
@@ -121,7 +121,7 @@ export default function CatalogPage() {
                 type="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar juego o crónica…"
+                placeholder="¿Qué crónica buscás…?"
                 className="tavern-input !pl-9 pr-8 py-2 text-xs font-serif rounded-sm w-full"
               />
               {searchTerm && (
@@ -244,6 +244,11 @@ export default function CatalogPage() {
         ) : (
           <>
             <h2 className="sr-only">Juegos disponibles</h2>
+            <p aria-live="polite" className="text-right font-tavern text-xs text-[#e2b17b] uppercase tracking-wider mb-3 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+              {filteredGames.length === 1
+                ? "1 aventura a la vista"
+                : `${filteredGames.length} aventuras a la vista`}
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredGames.map((game) => (
                 <GameCard
