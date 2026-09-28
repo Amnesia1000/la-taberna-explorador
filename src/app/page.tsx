@@ -86,44 +86,21 @@ export default function CatalogPage() {
       <Navbar />
 
       <main id="catalogo" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
-        {/* Tavern Quest Board (Tablón de Anuncios de la Taberna) */}
-        <section className="parchment-folio border-4 border-[#733d18] p-6 md:p-8 mb-8 shadow-2xl rounded-sm relative overflow-hidden">
-          {/* Iron Rivets in 4 corners */}
-          <div className="absolute top-2 left-2 w-3 h-3 rounded-full bg-gradient-to-br from-[#ca8a04] to-[#451a03] border border-[#1c0d06] shadow-sm"></div>
-          <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-gradient-to-br from-[#ca8a04] to-[#451a03] border border-[#1c0d06] shadow-sm"></div>
-          <div className="absolute bottom-2 left-2 w-3 h-3 rounded-full bg-gradient-to-br from-[#ca8a04] to-[#451a03] border border-[#1c0d06] shadow-sm"></div>
-          <div className="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-gradient-to-br from-[#ca8a04] to-[#451a03] border border-[#1c0d06] shadow-sm"></div>
-
-          {/* Watermark Compass (Now Logo) */}
-          <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={ASSETS.logo} alt="Logo" className="w-72 h-72 opacity-50 grayscale" />
-          </div>
-
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {/* Hero compacto: una fila, insignia a la derecha, stats con datos reales */}
+        <section className="parchment-folio border-4 border-[#733d18] px-5 py-4 md:px-6 mb-6 shadow-2xl rounded-sm relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              {/* Medieval Crest Badge */}
-              <div className="inline-flex items-center gap-2 border-2 border-[#b45309] bg-[#fffdf9] px-2.5 py-1 text-[10px] sm:text-xs font-tavern tracking-widest uppercase mb-3 text-[#78350f] rounded-sm shadow-md">
-                <span className="text-amber-600 font-bold">⚜</span>
-                <span>TABLÓN OFICIAL DE MISIONES Y AVENTURAS</span>
-                <span className="text-amber-600 font-bold">⚜</span>
-              </div>
-
-              <h1 className="font-tavern text-xl sm:text-3xl md:text-4xl font-extrabold uppercase tracking-wide text-[#2c1409] drop-shadow-sm leading-tight">
-                CATÁLOGO DE JUEGOS & EXPEDICIONES
+              <h1 className="font-tavern text-xl md:text-2xl font-extrabold uppercase tracking-wide text-[#2c1409] leading-tight">
+                Catálogo de juegos &amp; expediciones
               </h1>
-
-              <div className="flex items-center gap-2 my-2 text-[#b45309] opacity-70">
-                <span>✦</span>
-                <div className="h-[1px] w-24 bg-[#b45309]"></div>
-                <span>⚔</span>
-                <div className="h-[1px] w-24 bg-[#b45309]"></div>
-                <span>✦</span>
-              </div>
-
-              <p className="text-sm font-serif text-[#4a2e19] max-w-2xl leading-relaxed">
-                Toma asiento junto al fuego. Alquila un juego de mesa para tu posada o castillo por fin de semana o semana completa con todas sus piezas protegidas por el gremio.
+              <p className="text-xs font-serif text-[#6b4c33] mt-1">
+                {games.length} crónicas · {categories.length} categorías · Alquiler por fin de semana o semana completa
               </p>
+            </div>
+            <div className="hidden md:inline-flex items-center gap-2 border-2 border-[#b45309] bg-[#fffdf9] px-2.5 py-1 text-[10px] font-tavern tracking-widest uppercase text-[#78350f] rounded-sm shadow-md shrink-0">
+              <span className="text-amber-600 font-bold" aria-hidden="true">⚜</span>
+              <span>Tablón oficial de misiones</span>
+              <span className="text-amber-600 font-bold" aria-hidden="true">⚜</span>
             </div>
           </div>
         </section>
