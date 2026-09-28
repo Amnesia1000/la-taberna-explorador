@@ -10,7 +10,7 @@ import { Search, Filter, Scroll, ChevronLeft, ChevronRight } from "lucide-react"
 import { ASSETS } from "@/lib/assets";
 import Image from "next/image";
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 12;
 
 // Lee el estado inicial desde la URL (?cat=&q=&jug=&edad=&precio=&orden=&pag=&juego=)
 function readUrlState() {
@@ -29,8 +29,8 @@ function readUrlState() {
 
 function CatalogSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-hidden="true">
-      {Array.from({ length: 6 }).map((_, i) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" aria-hidden="true">
+      {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
           className="relative w-full animate-pulse"
@@ -59,10 +59,11 @@ export default function CatalogPage() {
   const [sortKey, setSortKey] = useState<string>(() => readUrlState().orden);
   const [page, setPage] = useState<number>(() => readUrlState().pag);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalFiltered, setTotalFiltered] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
   const [selectedGame, setSelectedGame] = useState<GameWithComponents | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   // Debounce de búsqueda para no golpear la DB en cada tecla
   useEffect(() => {
@@ -83,29 +84,38 @@ export default function CatalogPage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const res = await getCatalog({
-        category: selectedCategory,
-        q: debouncedQ,
-        players: playerFilter,
-        age: ageFilter,
-        price: priceFilter,
-        sort: sortKey,
-        page,
-        pageSize: PAGE_SIZE,
-      });
-      if (cancelled) return;
-      if (res.success) {
-        setGames(res.data as unknown as GameWithComponents[]);
-        setTotalPages(res.totalPages ?? 1);
-        setTotalFiltered(res.total ?? 0);
-        setGrandTotal(res.grandTotal ?? 0);
+      setLoadError(null);
+      try {
+        const res = await getCatalog({
+          category: selectedCategory,
+          q: debouncedQ,
+          players: playerFilter,
+          age: ageFilter,
+          price: priceFilter,
+          sort: sortKey,
+          page,
+          pageSize: PAGE_SIZE,
+        });
+        if (cancelled) return;
+        if (res.success) {
+          setGames(res.data as unknown as GameWithComponents[]);
+          setTotalPages(res.totalPages ?? 1);
+          setGrandTotal(res.grandTotal ?? 0);
+        } else {
+          setLoadError(res.error || "No se pudo cargar el catálogo.");
+        }
+      } catch {
+        if (!cancelled) {
+          setLoadError("No se pudo conectar con la taberna. Revisá tu conexión.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [selectedCategory, debouncedQ, playerFilter, ageFilter, priceFilter, sortKey, page]);
+  }, [selectedCategory, debouncedQ, playerFilter, ageFilter, priceFilter, sortKey, page, retryKey]);
 
   // Deep link ?juego=<id>: abre la ficha aunque no esté en la página actual
   useEffect(() => {
@@ -341,6 +351,21 @@ export default function CatalogPage() {
             <p className="sr-only" role="status">Cargando crónicas del grimorio…</p>
             <CatalogSkeleton />
           </>
+        ) : loadError ? (
+          <div className="parchment-folio p-16 text-center rounded-sm border-2 border-[#8c5828]" role="alert">
+            <h3 className="font-tavern text-base uppercase font-bold text-[#3b2314]">
+              La taberna no responde
+            </h3>
+            <p className="text-sm font-serif text-[#6b4c33] mt-1 max-w-sm mx-auto">
+              {loadError}
+            </p>
+            <button
+              onClick={() => setRetryKey((k) => k + 1)}
+              className="mt-4 tavern-btn-medieval rounded-sm"
+            >
+              Reintentar
+            </button>
+          </div>
         ) : games.length === 0 ? (
           <div className="parchment-folio p-16 text-center rounded-sm border-2 border-[#8c5828]">
             <Scroll className="w-12 h-12 text-[#b45309] mx-auto mb-3" />
@@ -360,12 +385,7 @@ export default function CatalogPage() {
         ) : (
           <>
             <h2 className="sr-only">Juegos disponibles</h2>
-            <p aria-live="polite" className="text-right font-tavern text-xs text-[#e2b17b] uppercase tracking-wider mb-3 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-              {totalFiltered === 1
-                ? "1 aventura a la vista"
-                : `${totalFiltered} aventuras a la vista`}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {games.map((game) => (
                 <GameCard
                   key={game.id}

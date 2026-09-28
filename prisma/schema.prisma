@@ -30,6 +30,12 @@ model Game {
   rentals       Rental[]
   reservations  Reservation[]
   expansions    Expansion[]
+
+  @@index([category])
+  @@index([name])
+  @@index([price])
+  @@index([minAge])
+  @@index([minPlayers, maxPlayers])
 }
 
 model GameComponents {
@@ -66,6 +72,8 @@ model Expansion {
   updatedAt   DateTime             @updatedAt
   components  ExpansionComponents?
   game        Game                 @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
 }
 
 model ExpansionComponents {

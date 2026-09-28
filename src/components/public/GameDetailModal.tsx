@@ -89,7 +89,7 @@ export default function GameDetailModal({ game, onClose, dismissable = false, sh
       : "";
   const message = `¡Saludos Tabernero! Deseo alquilar el juego "${game.name}" ${expText} por un valor total de $${totalPrice.toLocaleString(
     "es-AR"
-  )} en La Taberna del Explorador. ¿Hay ejemplares disponibles en el inventario?`;
+  )} en La Taberna del Explorador. ¿Hay ejemplares disponibles en el inventario? Ficha: ${typeof window !== "undefined" ? window.location.origin : ""}/juego/${game.id}`;
   const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
   // Formato dinámico de duración (ej: 20-30m o 30m)

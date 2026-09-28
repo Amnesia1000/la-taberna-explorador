@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -42,7 +43,7 @@ export default function AdminLayout({
       <div className="md:hidden border-b border-[#dfcfb2] bg-[#24130a] px-4 h-14 flex items-center justify-between text-[#fef3c7]">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 flex items-center justify-center rounded-sm">
-            <img src={ASSETS.logo} alt="Logo" className="w-6 h-6 object-contain" />
+            <Image src={ASSETS.logo.split("?")[0]} alt="Logo" width={24} height={24} className="object-contain" />
           </div>
           <span className="font-tavern text-xs font-bold uppercase tracking-wider text-[#fef3c7]">
             GREMIO // PANEL DE GESTIÓN
@@ -68,7 +69,7 @@ export default function AdminLayout({
           <div className="p-5 border-b border-[#3d2215] bg-[#180d07]">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 flex items-center justify-center rounded-sm">
-                <img src={ASSETS.logo} alt="Logo" className="w-8 h-8 object-contain opacity-90" />
+                <Image src={ASSETS.logo.split("?")[0]} alt="Logo" width={32} height={32} className="object-contain opacity-90" />
               </div>
               <div>
                 <h2 className="font-tavern text-xs font-bold uppercase tracking-wider text-[#fef3c7]">

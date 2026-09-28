@@ -66,7 +66,7 @@ export default function GameCard({ game, onSelect, vivid = false, showAvailabili
 
         {/* ── EXPANSIONES DISPONIBLES ── */}
         {((game.expansions && game.expansions.length > 0) || game.hasExpansions || (game._count?.expansions ?? 0) > 0) && (
-          <div className="absolute z-30 pointer-events-none" style={{ top: "-1%", right: "30%", width: "35%" }}>
+          <div className="seal-glow absolute z-30 pointer-events-none" style={{ top: "-1%", right: "30%", width: "35%" }}>
             <Image
               src={ASSETS.disponible.split("?")[0]}
               alt="Expansiones disponibles"
@@ -121,9 +121,9 @@ export default function GameCard({ game, onSelect, vivid = false, showAvailabili
         {showAvailability && (
           <div
             className="absolute z-20"
-            style={{ top: "46%", left: "14.5%" }}
+            style={{ top: "calc(46% - 5px)", left: "14.5%" }}
           >
-            <span className={`font-tavern text-[11px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-sm shadow-md backdrop-blur-[2px] ${game.stock > 0 ? "bg-[#14532d]/70 text-[#d1fae5]" : "bg-[#7f1d1d]/70 text-[#fecaca]"}`}>
+            <span className={`font-tavern text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-sm shadow-md backdrop-blur-[2px] ${game.stock > 0 ? "bg-[#14532d]/70 text-[#d1fae5]" : "bg-[#7f1d1d]/70 text-[#fecaca]"}`}>
               {game.stock > 0 ? "● Disponible" : "● Agotado"}
             </span>
           </div>
@@ -132,57 +132,63 @@ export default function GameCard({ game, onSelect, vivid = false, showAvailabili
         {/* ── CATEGORÍA — esquina superior izquierda de la imagen ── */}
         <div
           className="absolute z-20"
-          style={{ top: "9.5%", left: "14.5%" }}
+          style={{ top: "calc(9.5% - 3px)", left: "14.5%" }}
         >
-          <span className="font-tavern text-[11px] uppercase text-[#fff8ee] tracking-wider font-bold bg-[#1a0a03]/65 backdrop-blur-[2px] px-2.5 py-1 rounded-sm shadow-md">
+          <span className="font-tavern text-[9px] uppercase text-[#fff8ee] tracking-wider font-bold bg-[#1a0a03]/65 backdrop-blur-[2px] px-2 py-0.5 rounded-sm shadow-md">
             {game.category}
           </span>
         </div>
 
         {/* ── ZONA PERGAMINO — nombre, stats y precio ── */}
         <div
-          className="absolute z-20 flex flex-col justify-between"
+          className="absolute z-20 flex flex-col justify-between pt-1"
           style={{ top: "58%", left: "14%", right: "10%", bottom: "8%" }}
         >
           {/* Title + Description */}
           <div>
-            <h3 className="font-tavern text-sm sm:text-base font-extrabold text-[#1a0903] uppercase tracking-wide line-clamp-1 max-w-[93%] mx-auto leading-tight group-hover:text-[#7a2e00] transition-colors text-center">
+            <h3 className="font-tavern text-xs sm:text-[13px] font-extrabold text-[#1a0903] uppercase tracking-wide line-clamp-1 max-w-[93%] mx-auto leading-tight group-hover:text-[#7a2e00] transition-colors text-center">
               {game.name}
             </h3>
-            <p className="text-[13px] font-serif text-[#2e1508] line-clamp-3 leading-tight mt-0.5 font-semibold max-w-[75%] mx-auto text-center">
+            <p className="text-[11px] font-serif text-[#2e1508] line-clamp-3 leading-tight mt-0.5 font-semibold max-w-[77%] mx-auto text-justify -translate-x-[3px]">
               {game.description}
             </p>
           </div>
 
-          {/* Stats */}
-          <div className="flex justify-center gap-6 text-center items-center">
-            <div className="flex flex-col items-center gap-1">
-              <Users className="w-5 h-5 text-[#3b1a08]" />
-              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
-                {game.minPlayers === game.maxPlayers ? game.minPlayers : `${game.minPlayers}-${game.maxPlayers}`}
-              </span>
-              {labeledStats && <span className="text-[10px] font-bold uppercase tracking-wide text-[#5a3a22] leading-none -mt-0.5">jugadores</span>}
+          {/* Stats: icono al lado del valor */}
+          <div className="flex justify-center gap-3 text-center items-center">
+            <div className="flex items-center gap-0.5">
+              <Users className="w-4 h-4 text-[#3b1a08] shrink-0" />
+              <div className="flex flex-col items-start leading-none gap-0.5">
+                <span className="font-extrabold text-[#1a0903] text-xs leading-none">
+                  {game.minPlayers === game.maxPlayers ? game.minPlayers : `${game.minPlayers}-${game.maxPlayers}`}
+                </span>
+                {labeledStats && <span className="text-[8px] font-bold uppercase tracking-wide text-[#5a3a22] leading-none">jug.</span>}
+              </div>
             </div>
-            <div className="flex flex-col items-center gap-1">
-              <Baby className="w-5 h-5 text-[#3b1a08]" />
-              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
-                +{game.minAge}
-              </span>
-              {labeledStats && <span className="text-[10px] font-bold uppercase tracking-wide text-[#5a3a22] leading-none -mt-0.5">edad</span>}
+            <div className="flex items-center gap-1">
+              <Baby className="w-4 h-4 text-[#3b1a08] shrink-0" />
+              <div className="flex flex-col items-start leading-none gap-0.5">
+                <span className="font-extrabold text-[#1a0903] text-xs leading-none">
+                  +{game.minAge}
+                </span>
+                {labeledStats && <span className="text-[8px] font-bold uppercase tracking-wide text-[#5a3a22] leading-none">años</span>}
+              </div>
             </div>
-            <div className="flex flex-col items-center gap-1">
-              <Clock className="w-5 h-5 text-[#3b1a08]" />
-              <span className="font-extrabold text-[#1a0903] text-[15px] leading-none">
-                {formattedPlaytime}
-              </span>
-              {labeledStats && <span className="text-[10px] font-bold uppercase tracking-wide text-[#5a3a22] leading-none -mt-0.5">duración</span>}
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4 text-[#3b1a08] shrink-0" />
+              <div className="flex flex-col items-start leading-none gap-0.5">
+                <span className="font-extrabold text-[#1a0903] text-xs leading-none">
+                  {formattedPlaytime}
+                </span>
+                {labeledStats && <span className="text-[8px] font-bold uppercase tracking-wide text-[#5a3a22] leading-none">duración</span>}
+              </div>
             </div>
           </div>
 
           {/* Price */}
-          <div className="flex items-baseline gap-1.5 ml-10 relative translate-y-1.5">
-            <span className="text-2xl leading-none" aria-hidden="true">🪙</span>
-            <span className="font-tavern text-2xl font-extrabold text-[#1a0903]">
+          <div className="flex items-baseline gap-1 ml-14 relative translate-y-1.5">
+            <span className="text-xl leading-none" aria-hidden="true">🪙</span>
+            <span className="font-tavern text-xl font-extrabold text-[#1a0903]">
               ${game.price.toLocaleString("es-AR")}
             </span>
           </div>

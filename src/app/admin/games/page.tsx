@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   getGames,
   saveGame,
@@ -45,6 +46,7 @@ export default function AdminGamesPage() {
     description: "",
     category: "Estrategia",
     price: 3000,
+    stock: 1,
     imageUrl: "",
     imageUrl2: "",
     qrManualUrl: "",
@@ -97,6 +99,7 @@ export default function AdminGamesPage() {
       description: "",
       category: "Estrategia",
       price: 3000,
+      stock: 1,
       imageUrl: "",
       imageUrl2: "",
       qrManualUrl: "",
@@ -156,6 +159,7 @@ export default function AdminGamesPage() {
       description: game.description || "",
       category: game.category || "",
       price: game.price || 0,
+      stock: game.stock ?? 1,
       imageUrl: game.image || "",
       imageUrl2: game.image2 || "",
       qrManualUrl: game.qrManual || "",
@@ -205,6 +209,7 @@ export default function AdminGamesPage() {
     data.append("description", formData.description);
     data.append("category", formData.category);
     data.append("price", formData.price.toString());
+    data.append("stock", formData.stock.toString());
     data.append("minPlayers", formData.minPlayers.toString());
     data.append("maxPlayers", formData.maxPlayers.toString());
     data.append("minAge", formData.minAge.toString());
@@ -361,13 +366,14 @@ export default function AdminGamesPage() {
               {filteredGames.map((game) => (
                 <tr key={game.id} className="hover:bg-zinc-50/80 transition">
                   <td className="p-3 text-center">
-                    <div className="w-10 h-10 border border-zinc-300 bg-zinc-100 overflow-hidden mx-auto">
+                    <div className="relative w-10 h-10 border border-zinc-300 bg-zinc-100 overflow-hidden mx-auto">
                       {game.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={game.image}
                           alt={game.name}
-                          className="w-full h-full object-cover grayscale"
+                          fill
+                          sizes="40px"
+                          className="object-cover grayscale"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[8px] text-zinc-400">
@@ -522,6 +528,20 @@ export default function AdminGamesPage() {
                   />
                 </div>
 
+
+                <div>
+                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
+                    Stock (ejemplares, 0 = agotado) *
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={formData.stock ?? 1}
+                    onChange={(e) => setFormData({ ...formData, stock: Math.max(0, parseInt(e.target.value) || 0) })}
+                    className="wire-input text-xs"
+                  />
+                </div>
 
                 <div>
                   <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">

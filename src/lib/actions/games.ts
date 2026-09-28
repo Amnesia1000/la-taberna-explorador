@@ -115,7 +115,7 @@ function catalogOrderBy(sort?: string): any {
 export async function getCatalog(filters: CatalogFilters = {}) {
   try {
     const page = Math.max(1, filters.page ?? 1);
-    const pageSize = Math.min(48, Math.max(1, filters.pageSize ?? 9));
+    const pageSize = Math.min(48, Math.max(1, filters.pageSize ?? 12));
     const where = buildCatalogWhere(filters);
 
     const [games, total, grandTotal] = await Promise.all([
@@ -186,7 +186,8 @@ export async function saveGame(formData: FormData, id?: string) {
     const description = formData.get("description") as string;
     const category = formData.get("category") as string;
     const price = parseFloat(formData.get("price") as string);
-    const stock = 1; // Default stock to 1 as per requirements
+    const stockRaw = formData.get("stock");
+    const stock = stockRaw === null ? 1 : Math.max(0, parseInt(stockRaw as string) || 0);
     const minPlayers = parseInt(formData.get("minPlayers") as string);
     const maxPlayers = parseInt(formData.get("maxPlayers") as string);
     const minAge = parseInt(formData.get("minAge") as string);

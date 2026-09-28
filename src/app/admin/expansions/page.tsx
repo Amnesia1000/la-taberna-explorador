@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   getExpansions,
   getEligibleGames,
@@ -416,13 +417,14 @@ export default function AdminExpansionsPage() {
               {filteredExpansions.map((exp) => (
                 <tr key={exp.id} className="hover:bg-zinc-50/80 transition">
                   <td className="p-3 text-center">
-                    <div className="w-10 h-10 border border-zinc-300 bg-zinc-100 overflow-hidden mx-auto">
+                    <div className="relative w-10 h-10 border border-zinc-300 bg-zinc-100 overflow-hidden mx-auto">
                       {exp.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={exp.image}
                           alt={exp.name}
-                          className="w-full h-full object-cover grayscale"
+                          fill
+                          sizes="40px"
+                          className="object-cover grayscale"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[8px] text-zinc-400">
