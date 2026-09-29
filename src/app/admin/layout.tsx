@@ -19,6 +19,7 @@ import {
   Wallet,
   ChevronDown,
   Library,
+  ClipboardList,
 } from "lucide-react";
 import { useState } from "react";
 import { ASSETS } from "@/lib/assets";
@@ -55,6 +56,8 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: "Operación",
+    icon: ClipboardList,
+    collapsible: true,
     items: [
       { href: "/admin/rentals", label: "Alquileres", icon: Repeat },
       { href: "/admin/reservations", label: "Reservas", icon: CalendarCheck },
@@ -75,11 +78,7 @@ export default function AdminLayout({
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
     for (const g of NAV_GROUPS) {
-      if (g.collapsible && g.label) {
-        init[g.label] = g.items.some((i) =>
-          i.exact ? pathname === i.href : pathname.startsWith(i.href)
-        );
-      }
+      if (g.collapsible && g.label) init[g.label] = true;
     }
     return init;
   });
@@ -94,7 +93,7 @@ export default function AdminLayout({
         key={item.href}
         href={item.href}
         onClick={() => setSidebarOpen(false)}
-        className={`flex items-center gap-3 px-3.5 py-2.5 text-xs font-tavern uppercase tracking-wider border transition-all rounded-sm ${nested ? "ml-4 border-l-2 border-l-[#5a3219] pl-3" : ""} ${isActive
+        className={`flex items-center justify-start gap-3 px-3.5 py-2.5 text-xs font-tavern uppercase tracking-wider border transition-all rounded-sm ${nested ? "ml-4 border-l-2 border-l-[#5a3219] pl-3" : ""} ${isActive
             ? "bg-gradient-to-r from-[#b45309] to-[#92400e] text-white border-[#d97706] font-bold shadow-sm"
             : "text-[#d1baa5] border-transparent hover:bg-[#2e1a0f] hover:text-[#ffffff]"
           }`}
@@ -168,11 +167,11 @@ export default function AdminLayout({
                       type="button"
                       onClick={() => setOpenGroups((p) => ({ ...p, [group.label as string]: !p[group.label as string] }))}
                       aria-expanded={!!openGroups[group.label]}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-tavern text-[#8a6b52] uppercase tracking-widest font-bold hover:text-[#e2b17b] transition"
+                      className="w-full flex items-center gap-3 px-3.5 py-2 text-[10px] font-tavern text-[#8a6b52] uppercase tracking-widest font-bold hover:text-[#e2b17b] transition"
                     >
-                      {group.icon && <group.icon className="w-3.5 h-3.5" />}
+                      {group.icon && <group.icon className="w-4 h-4 shrink-0" />}
                       <span className="flex-1 text-left">{group.label}</span>
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openGroups[group.label] ? "rotate-180" : ""}`} />
+                      <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${openGroups[group.label] ? "rotate-180" : ""}`} />
                     </button>
                   ) : (
                     <span className="px-3 py-1.5 text-[10px] font-tavern text-[#8a6b52] uppercase tracking-widest block font-bold">
