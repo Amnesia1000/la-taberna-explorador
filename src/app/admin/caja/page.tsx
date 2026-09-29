@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getMovements, saveMovement, deleteMovement, CashType } from "@/lib/actions/cash";
-import { exportExcel } from "@/lib/actions/export-excel";
+import { exportYearExcel } from "@/lib/actions/export-excel";
 import {
   Wallet,
   Plus,
@@ -42,6 +42,8 @@ export default function AdminCajaPage() {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [month, setMonth] = useState(currentMonth());
+  const [exportYear, setExportYear] = useState(new Date().getFullYear());
+  const [exporting, setExporting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<Movement | null>(null);
   const [saving, setSaving] = useState(false);
@@ -128,10 +130,23 @@ export default function AdminCajaPage() {
           <Plus className="w-4 h-4" />
           <span>Registrar movimiento</span>
         </button>
+        <input
+          type="number"
+          min="2000"
+          max="2100"
+          value={exportYear}
+          onChange={(e) => setExportYear(parseInt(e.target.value) || new Date().getFullYear())}
+          aria-label="Año a exportar"
+          title="Año a exportar"
+          className="wire-input text-xs w-24"
+        />
         <button
           type="button"
+          disabled={exporting}
           onClick={async () => {
-            const res = await exportExcel();
+            setExporting(true);
+            const res = await exportYearExcel(exportYear);
+            setExporting(false);
             if (res.success && res.base64) {
               const a = document.createElement("a");
               a.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${res.base64}`;
@@ -144,7 +159,7 @@ export default function AdminCajaPage() {
           className="px-4 h-8 bg-white hover:bg-zinc-100 text-zinc-900 border border-zinc-900 font-mono text-xs uppercase tracking-wider flex items-center gap-2 transition"
         >
           <Download className="w-4 h-4" />
-          <span>Exportar Excel</span>
+            <span>{exporting ? "Generando…" : "Exportar Excel"}</span>
         </button>
         </div>
       </div>
