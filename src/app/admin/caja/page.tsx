@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getMovements, saveMovement, deleteMovement, CashType } from "@/lib/actions/cash";
+import { exportExcel } from "@/lib/actions/export-excel";
 import {
   Wallet,
   Plus,
@@ -13,6 +14,7 @@ import {
   TrendingUp,
   TrendingDown,
   Scale,
+  Download,
 } from "lucide-react";
 
 interface Movement {
@@ -117,6 +119,7 @@ export default function AdminCajaPage() {
             CAJA
           </h1>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={openCreate}
@@ -125,6 +128,25 @@ export default function AdminCajaPage() {
           <Plus className="w-4 h-4" />
           <span>Registrar movimiento</span>
         </button>
+        <button
+          type="button"
+          onClick={async () => {
+            const res = await exportExcel();
+            if (res.success && res.base64) {
+              const a = document.createElement("a");
+              a.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${res.base64}`;
+              a.download = res.filename || "taberna.xlsx";
+              a.click();
+            } else {
+              alert(res.error || "No se pudo exportar.");
+            }
+          }}
+          className="px-4 h-8 bg-white hover:bg-zinc-100 text-zinc-900 border border-zinc-900 font-mono text-xs uppercase tracking-wider flex items-center gap-2 transition"
+        >
+          <Download className="w-4 h-4" />
+          <span>Exportar Excel</span>
+        </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
