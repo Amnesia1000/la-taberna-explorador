@@ -155,12 +155,23 @@ export async function createRental(data: {
         },
       });
 
+      await tx.cashMovement.create({
+        data: {
+          date: rental.startDate,
+          type: "INCOME",
+          concept: `Alquiler: ${game.name} - ${data.clientName} ${data.clientLastName}`,
+          amount: game.price,
+          rentalId: rental.id,
+        },
+      });
+
       return rental;
     });
 
     revalidatePath("/admin/rentals");
     revalidatePath("/admin/games");
     revalidatePath("/admin");
+    revalidatePath("/admin/caja");
     revalidatePath("/");
     return { success: true, data: result };
   } catch (error) {
