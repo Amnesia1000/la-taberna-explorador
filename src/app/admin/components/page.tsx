@@ -199,7 +199,7 @@ export default function AdminComponentsPage() {
         ) : (
           <table className="w-full text-left font-mono text-xs border-collapse">
             <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-100 uppercase text-zinc-600">
+              <tr className="bg-[#24130a] text-[#e2b17b] uppercase border-b-2 border-[#8c5828]">
                 <th className="p-3">Estructura / Elemento</th>
                 <th className="p-3 text-center">Cartas</th>
                 <th className="p-3 text-center">Fichas</th>

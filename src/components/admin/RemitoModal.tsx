@@ -409,17 +409,17 @@ export default function RemitoModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
       <div className="relative w-full max-w-3xl bg-white border-2 border-zinc-900 shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between bg-zinc-50">
+        <div className="px-4 py-3 border-b-2 border-[#8c5828] flex items-center justify-between wood-beam">
           <div className="flex items-center gap-2">
-            <FileSignature className="w-5 h-5 text-zinc-900" />
-            <h3 className="font-mono text-sm uppercase font-bold text-zinc-900">
+            <FileSignature className="w-5 h-5 text-[#f59e0b]" />
+            <h3 className="font-tavern text-sm uppercase font-bold text-[#fef3c7] tracking-wider">
               Generar Remito Digital de Entrega
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-zinc-500 hover:text-zinc-950"
+            className="p-1 text-[#e2b17b] hover:text-white hover:bg-[#4a2612] rounded-sm transition"
           >
             <X className="w-5 h-5" />
           </button>
