@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getUsers, createUser, updateUser, deleteUser } from "@/lib/actions/users";
+import { getUsers, createUser, updateUser, deleteUser, getUserDetails } from "@/lib/actions/users";
 import { UserData } from "@/types";
 import {
   Users,
@@ -15,6 +15,7 @@ import {
   MapPin,
   X,
   AlertTriangle,
+  Eye,
 } from "lucide-react";
 
 export default function AdminUsersPage() {
@@ -34,6 +35,25 @@ export default function AdminUsersPage() {
   });
   const [saving, setSaving] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [viewing, setViewing] = useState<{
+    user: { firstName: string; lastName: string; phone: string; email: string; address: string };
+    rentals: { id: string; status: string; startDate: Date; expectedEndDate: Date; returnNotes?: string | null; game: { name: string } | null }[];
+    reservations: { id: string; status: string; game: { name: string } | null }[];
+    summary: { totalRentals: number; activeRentals: number; lateRentals: number; pendingReservations: number; totalSpent: number };
+  } | null>(null);
+  const [viewingLoading, setViewingLoading] = useState(false);
+
+  const openFicha = async (id: string) => {
+    setViewingLoading(true);
+    setViewing(null);
+    const res = await getUserDetails(id);
+    setViewingLoading(false);
+    if (res.success && res.data) {
+      setViewing(res.data as unknown as NonNullable<typeof viewing>);
+    } else {
+      alert(res.error || "No se pudo cargar la ficha.");
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -218,6 +238,14 @@ export default function AdminUsersPage() {
                     <div className="flex items-center justify-end gap-1.5">
                       <button
                         type="button"
+                        onClick={() => openFicha(u.id)}
+                        className="p-1.5 border border-zinc-200 hover:border-amber-600 text-zinc-700 hover:text-amber-700 transition"
+                        title="Ver ficha del cliente"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => handleOpenEdit(u)}
                         className="p-1.5 border border-zinc-200 hover:border-zinc-900 text-zinc-700 hover:text-zinc-900 transition"
                         title="Editar cliente"
@@ -356,6 +384,86 @@ export default function AdminUsersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ficha de Cliente */}
+      {(viewing || viewingLoading) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-lg bg-white border-2 border-zinc-900 border-t-4 border-t-[#b45309] shadow-2xl max-h-[90vh] flex flex-col overflow-hidden font-mono text-xs">
+            <div className="px-4 py-3 border-b-2 border-[#8c5828] flex items-center justify-between wood-beam">
+              <h3 className="font-tavern text-sm uppercase font-bold text-[#fef3c7] tracking-wider">
+                {viewing ? `Ficha: ${viewing.user.firstName} ${viewing.user.lastName}` : "Cargando ficha…"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setViewing(null)}
+                className="p-1 text-[#e2b17b] hover:text-white hover:bg-[#4a2612] rounded-sm transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto space-y-4">
+              {viewingLoading || !viewing ? (
+                <p className="text-center text-zinc-500 py-6 uppercase">Cargando…</p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                    <div className="border border-zinc-200 bg-zinc-50 p-2">
+                      <span className="text-lg font-bold text-zinc-900 block">{viewing.summary.totalRentals}</span>
+                      <span className="text-[10px] uppercase text-zinc-500">Alquileres</span>
+                    </div>
+                    <div className="border border-zinc-200 bg-zinc-50 p-2">
+                      <span className="text-lg font-bold text-zinc-900 block">{viewing.summary.activeRentals}</span>
+                      <span className="text-[10px] uppercase text-zinc-500">Activos</span>
+                    </div>
+                    <div className={`border p-2 ${viewing.summary.lateRentals > 0 ? "border-red-300 bg-red-50" : "border-zinc-200 bg-zinc-50"}`}>
+                      <span className={`text-lg font-bold block ${viewing.summary.lateRentals > 0 ? "text-red-700" : "text-zinc-900"}`}>{viewing.summary.lateRentals}</span>
+                      <span className="text-[10px] uppercase text-zinc-500">Atrasos</span>
+                    </div>
+                    <div className="border border-zinc-200 bg-zinc-50 p-2">
+                      <span className="text-lg font-bold text-zinc-900 block">${viewing.summary.totalSpent.toLocaleString("es-AR")}</span>
+                      <span className="text-[10px] uppercase text-zinc-500">Total gastado</span>
+                    </div>
+                  </div>
+                  <div className="text-[11px] text-zinc-600 space-y-1">
+                    <p>Tel: {viewing.user.phone} · {viewing.user.email}</p>
+                    <p>{viewing.user.address}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] uppercase font-bold text-zinc-700 mb-1.5">Historial de alquileres</h4>
+                    {viewing.rentals.length === 0 ? (
+                      <p className="text-zinc-400 italic">Sin alquileres.</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {viewing.rentals.map((r) => (
+                          <div key={r.id} className="flex items-center justify-between border border-zinc-200 px-2.5 py-1.5">
+                            <span className="font-bold text-zinc-900 uppercase">{r.game?.name ?? "—"}</span>
+                            <span className="text-[10px] uppercase text-zinc-500">{r.status} · {new Date(r.startDate).toLocaleDateString("es-AR")}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] uppercase font-bold text-zinc-700 mb-1.5">Reservas</h4>
+                    {viewing.reservations.length === 0 ? (
+                      <p className="text-zinc-400 italic">Sin reservas.</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {viewing.reservations.map((r) => (
+                          <div key={r.id} className="flex items-center justify-between border border-zinc-200 px-2.5 py-1.5">
+                            <span className="font-bold text-zinc-900 uppercase">{r.game?.name ?? "—"}</span>
+                            <span className="text-[10px] uppercase text-zinc-500">{r.status}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

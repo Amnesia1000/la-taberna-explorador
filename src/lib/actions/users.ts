@@ -90,8 +90,7 @@ export async function updateUser(
   }
 }
 
-export async function deleteUser(id: string) {
-  try {
+export async function deleteUser(id: string) {  try {
     // Verificar si tiene alquileres activos
     const activeRentals = await prisma.rental.findFirst({
       where: {
@@ -116,5 +115,42 @@ export async function deleteUser(id: string) {
   } catch (error) {
     console.error("Error deleting user:", error);
     return { success: false, error: "Error al eliminar el cliente" };
+  }
+}
+
+/** Ficha de cliente: datos + historial + totales para decidir alquileres. */
+export async function getUserDetails(id: string) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) return { success: false, error: "Cliente no encontrado" };
+
+    const [rentals, reservations] = await Promise.all([
+      prisma.rental.findMany({
+        where: { userId: id },
+        include: { game: { select: { id: true, name: true, price: true } } },
+        orderBy: { startDate: "desc" },
+      }),
+      prisma.reservation.findMany({
+        where: { userId: id },
+        include: { game: { select: { id: true, name: true } } },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
+
+    const now = new Date();
+    const summary = {
+      totalRentals: rentals.length,
+      activeRentals: rentals.filter((r) => r.status === "ACTIVE").length,
+      lateRentals: rentals.filter(
+        (r) => r.status === "LATE" || (r.status === "ACTIVE" && new Date(r.expectedEndDate) < now)
+      ).length,
+      pendingReservations: reservations.filter((r) => r.status === "PENDING").length,
+      totalSpent: rentals.reduce((acc, r) => acc + (r.game?.price ?? 0), 0),
+    };
+
+    return { success: true, data: { user, rentals, reservations, summary } };
+  } catch (error) {
+    console.error("Error obteniendo ficha de cliente:", error);
+    return { success: false, error: "Error al cargar la ficha" };
   }
 }

@@ -14,6 +14,7 @@ import {
   Search,
   UserCheck,
   UserPlus,
+  MessageSquare,
   X,
 } from "lucide-react";
 
@@ -46,6 +47,10 @@ export default function AdminRentalsPage() {
   );
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [actionError, setActionError] = useState<string>("");
+  const [returning, setReturning] = useState<RentalWithDetails | null>(null);
+  const [missing, setMissing] = useState<Record<string, number>>({});
+  const [returnFreeNotes, setReturnFreeNotes] = useState("");
+  const [returningBusy, setReturningBusy] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -145,13 +150,33 @@ export default function AdminRentalsPage() {
     setSubmitting(false);
   };
 
-  const handleReturn = async (rentalId: string, gameName: string) => {
-    if (!confirm(`¿Confirmas la devolución del juego "${gameName}"? Esto reintegrará 1 unidad al stock.`)) {
-      return;
-    }
+  const openReturn = (rental: RentalWithDetails) => {
+    setReturning(rental);
+    setMissing({});
+    setReturnFreeNotes("");
+  };
 
-    const res = await returnRental(rentalId);
+  const confirmReturn = async () => {
+    if (!returning) return;
+    const comp = returning.game.components;
+    const items = comp
+      ? [
+          { key: "cards", label: "Cartas", expected: comp.cards },
+          { key: "tokens", label: "Fichas", expected: comp.tokens },
+          { key: "dice", label: "Dados", expected: comp.dice },
+          { key: "tiles", label: "Losetas", expected: comp.tiles },
+          { key: "others", label: `Otros${comp.othersDescription ? ` (${comp.othersDescription})` : ""}`, expected: comp.others },
+        ]
+      : [];
+    const faltantes = items
+      .filter((i) => (missing[i.key] || 0) > 0)
+      .map((i) => `Faltan ${missing[i.key]} ${i.label} (de ${i.expected})`);
+    const notes = [...faltantes, returnFreeNotes.trim()].filter(Boolean).join(" | ");
+    setReturningBusy(true);
+    const res = await returnRental(returning.id, notes || undefined);
+    setReturningBusy(false);
     if (res.success) {
+      setReturning(null);
       await loadData();
     } else {
       alert("Error al devolver el alquiler: " + res.error);
@@ -293,6 +318,11 @@ export default function AdminRentalsPage() {
                           Devuelto: {new Date(rental.returnDate).toLocaleDateString("es-AR")}
                         </span>
                       )}
+                      {rental.returnNotes && (
+                        <span className="text-[10px] text-amber-700 block" title={rental.returnNotes}>
+                          Obs.: {rental.returnNotes}
+                        </span>
+                      )}
                     </td>
                     <td className="p-3 text-center">
                       <span
@@ -311,15 +341,31 @@ export default function AdminRentalsPage() {
                     </td>
                     <td className="p-3 text-right">
                       {rental.status === "ACTIVE" || rental.status === "LATE" ? (
-                        <button
-                          type="button"
-                          onClick={() => handleReturn(rental.id, rental.game.name)}
-                          className="px-3 py-1 bg-white hover:bg-zinc-100 text-zinc-900 border border-zinc-900 text-[11px] uppercase tracking-wider flex items-center gap-1.5 ml-auto transition"
-                          title="Marcar como devuelto y sumar al stock"
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                          <span>Devolver</span>
-                        </button>
+                        <div className="flex flex-col items-end gap-1.5">
+                          {isOverdue && rental.clientPhone && (
+                            <a
+                              href={`https://wa.me/${rental.clientPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                                `Hola ${rental.clientName}, te escribimos de La Taberna del Explorador: el juego "${rental.game.name}" venció el ${new Date(rental.expectedEndDate).toLocaleDateString("es-AR")}. ¿Cuándo podés devolverlo?`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 bg-[#14532d] hover:bg-[#166534] text-white text-[11px] uppercase tracking-wider flex items-center gap-1.5 transition"
+                              title="Enviar recordatorio por WhatsApp"
+                            >
+                              <MessageSquare className="w-3 h-3" />
+                              <span>Recordar</span>
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => openReturn(rental)}
+                            className="px-3 py-1 bg-white hover:bg-zinc-100 text-zinc-900 border border-zinc-900 text-[11px] uppercase tracking-wider flex items-center gap-1.5 transition"
+                            title="Marcar como devuelto y sumar al stock"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            <span>Devolver</span>
+                          </button>
+                        </div>
                       ) : (
                         <span className="text-zinc-400 text-[10px] uppercase italic">
                           Completado
@@ -333,6 +379,92 @@ export default function AdminRentalsPage() {
           </table>
         )}
       </div>
+
+      {/* Modal Devolución con checklist */}
+      {returning && (() => {
+        const comp = returning.game.components;
+        const items = comp
+          ? [
+              { key: "cards", label: "Cartas", expected: comp.cards },
+              { key: "tokens", label: "Fichas", expected: comp.tokens },
+              { key: "dice", label: "Dados", expected: comp.dice },
+              { key: "tiles", label: "Losetas", expected: comp.tiles },
+              { key: "others", label: "Otros", expected: comp.others },
+            ]
+          : [];
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
+            <div className="relative w-full max-w-md bg-white border-2 border-zinc-900 border-t-4 border-t-[#b45309] shadow-2xl max-h-[90vh] flex flex-col overflow-hidden font-mono text-xs">
+              <div className="px-4 py-3 border-b-2 border-[#8c5828] flex items-center justify-between wood-beam">
+                <h3 className="font-tavern text-sm uppercase font-bold text-[#fef3c7] tracking-wider">
+                  Devolver: {returning.game.name}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setReturning(null)}
+                  className="p-1 text-[#e2b17b] hover:text-white hover:bg-[#4a2612] rounded-sm transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-4 overflow-y-auto space-y-3">
+                <p className="text-[11px] text-zinc-600 uppercase">
+                  Cliente: {returning.clientName} {returning.clientLastName} · Revisá componentes
+                </p>
+                {items.length === 0 ? (
+                  <p className="text-zinc-500 italic">Sin componentes registrados para este juego.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {items.map((item) => (
+                      <div key={item.key} className="flex items-center gap-2 border border-zinc-200 px-2.5 py-1.5">
+                        <span className="flex-1 uppercase">{item.label} <span className="text-zinc-400">({item.expected})</span></span>
+                        <label className="flex items-center gap-1.5 text-[11px] uppercase text-zinc-500">
+                          Faltan
+                          <input
+                            type="number"
+                            min="0"
+                            max={item.expected}
+                            value={missing[item.key] ?? 0}
+                            onChange={(e) => setMissing({ ...missing, [item.key]: Math.max(0, Math.min(item.expected, parseInt(e.target.value) || 0)) })}
+                            className="wire-input text-xs w-16"
+                          />
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div>
+                  <label className="block text-[11px] uppercase text-zinc-500 mb-1">Notas / daños (opcional)</label>
+                  <textarea
+                    rows={2}
+                    value={returnFreeNotes}
+                    onChange={(e) => setReturnFreeNotes(e.target.value)}
+                    placeholder="Ej: caja rota, carta marcada..."
+                    className="wire-input text-xs w-full"
+                  />
+                </div>
+              </div>
+              <div className="p-3 border-t border-zinc-200 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReturning(null)}
+                  className="px-4 h-8 border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100 font-mono text-xs uppercase tracking-wider"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={returningBusy}
+                  onClick={confirmReturn}
+                  className="px-5 h-8 bg-zinc-900 hover:bg-zinc-800 text-white font-mono text-xs uppercase tracking-wider disabled:opacity-50"
+                >
+                  {returningBusy ? "Guardando…" : "Confirmar devolución"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal Nuevo Alquiler */}
       {isModalOpen && (

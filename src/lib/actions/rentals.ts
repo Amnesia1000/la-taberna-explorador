@@ -4,8 +4,46 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { RentalStatus } from "@/types";
 
-export async function getRentals(statusFilter?: RentalStatus) {
-  try {
+/** Detecta si un juego está comprometido en un rango de fechas.
+ *  Devuelve descripción del conflicto o null si está libre. */
+export async function findDateConflict(
+  db: any,
+  gameId: string,
+  start: Date,
+  end: Date,
+  excludeRentalId?: string,
+  excludeReservationId?: string
+): Promise<string | null> {
+  const rentals = await db.rental.findMany({
+    where: {
+      gameId,
+      status: { in: ["ACTIVE", "LATE"] },
+      ...(excludeRentalId ? { id: { not: excludeRentalId } } : {}),
+    },
+    select: { id: true, clientName: true, clientLastName: true, startDate: true, expectedEndDate: true },
+  });
+  for (const r of rentals) {
+    if (r.startDate <= end && r.expectedEndDate >= start) {
+      return `Alquilado a ${r.clientName} ${r.clientLastName} hasta el ${r.expectedEndDate.toLocaleDateString("es-AR")}`;
+    }
+  }
+  const reservations = await db.reservation.findMany({
+    where: {
+      gameId,
+      status: "PENDING",
+      ...(excludeReservationId ? { id: { not: excludeReservationId } } : {}),
+    },
+    select: { id: true, clientName: true, clientLastName: true, createdAt: true, expectedEndDate: true },
+  });
+  for (const r of reservations) {
+    if (r.createdAt <= end && r.expectedEndDate >= start) {
+      return `Reservado por ${r.clientName} ${r.clientLastName} hasta el ${r.expectedEndDate.toLocaleDateString("es-AR")}`;
+    }
+  }
+  return null;
+}
+
+export async function getRentals(statusFilter?: RentalStatus) {  try {
     const where: any = {};
     if (statusFilter) {
       where.status = statusFilter;
@@ -57,6 +95,14 @@ export async function createRental(data: {
 
     if (game.stock <= 0) {
       return { success: false, error: "No hay stock disponible para este juego" };
+    }
+
+    // Choque de fechas con otros préstamos/reservas del mismo juego
+    const start = data.startDate ? new Date(data.startDate) : new Date();
+    const end = new Date(data.expectedEndDate);
+    const conflict = await findDateConflict(prisma, data.gameId, start, end);
+    if (conflict) {
+      return { success: false, error: `Choque de fechas: ${conflict}` };
     }
 
     let resolvedUserId = data.userId || null;
@@ -123,7 +169,7 @@ export async function createRental(data: {
   }
 }
 
-export async function returnRental(rentalId: string) {
+export async function returnRental(rentalId: string, notes?: string) {
   try {
     const rental = await prisma.rental.findUnique({
       where: { id: rentalId },
@@ -144,6 +190,7 @@ export async function returnRental(rentalId: string) {
         data: {
           status: "RETURNED",
           returnDate: new Date(),
+          returnNotes: notes?.trim() ? notes.trim() : null,
         },
       });
 

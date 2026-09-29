@@ -187,7 +187,7 @@ export default function CatalogPage() {
                 Catálogo de juegos &amp; expediciones
               </h1>
               <p className="text-xs font-serif text-[#6b4c33] mt-1">
-                {grandTotal} crónicas · {categories.length} categorías · Alquiler por fin de semana o semana completa
+                {grandTotal} crónicas · {categories.length} categorías
               </p>
             </div>
             <div className="inline-flex items-center gap-2 border-2 border-[#b45309] bg-[#fffdf9] px-2 py-0.5 text-[9px] md:px-2.5 md:py-1 md:text-[10px] font-tavern tracking-widest uppercase text-[#78350f] rounded-sm shadow-md shrink-0">

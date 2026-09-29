@@ -91,6 +91,7 @@ export interface RentalWithDetails {
   startDate: Date;
   expectedEndDate: Date;
   returnDate?: Date | null;
+  returnNotes?: string | null;
   status: RentalStatus;
   game: {
     id: string;

@@ -40,6 +40,17 @@ export async function createReservation(data: {
   expectedEndDate: string;
 }) {
   try {
+    const { findDateConflict } = await import("./rentals");
+    const conflict = await findDateConflict(
+      prisma,
+      data.gameId,
+      new Date(),
+      new Date(data.expectedEndDate)
+    );
+    if (conflict) {
+      return { success: false, error: `Choque de fechas: ${conflict}` };
+    }
+
     const reservation = await prisma.reservation.create({
       data: {
         gameId: data.gameId,
@@ -106,6 +117,19 @@ export async function confirmReservationToRental(reservationId: string) {
         success: false,
         error: "No hay stock disponible para confirmar este alquiler",
       };
+    }
+
+    const { findDateConflict } = await import("./rentals");
+    const conflict = await findDateConflict(
+      prisma,
+      reservation.gameId,
+      new Date(),
+      reservation.expectedEndDate,
+      undefined,
+      reservation.id
+    );
+    if (conflict) {
+      return { success: false, error: `Choque de fechas: ${conflict}` };
     }
 
     // Transacción atómica: Crear Alquiler + Actualizar Reserva a CONFIRMED + Descontar Stock

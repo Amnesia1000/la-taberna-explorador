@@ -117,6 +117,7 @@ model Rental {
   startDate       DateTime  @default(now())
   expectedEndDate DateTime
   returnDate      DateTime?
+  returnNotes     String?
   status          String    @default("ACTIVE")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
