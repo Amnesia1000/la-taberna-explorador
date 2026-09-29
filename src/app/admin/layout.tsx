@@ -16,6 +16,7 @@ import {
   X,
   Scroll,
   LogOut,
+  Wallet,
 } from "lucide-react";
 import { useState } from "react";
 import { ASSETS } from "@/lib/assets";
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { href: "/admin/rentals", label: "Alquileres", icon: Repeat },
   { href: "/admin/reservations", label: "Reservas", icon: CalendarCheck },
   { href: "/admin/users", label: "Clientes", icon: Users },
+  { href: "/admin/caja", label: "Caja", icon: Wallet },
 ];
 
 export default function AdminLayout({

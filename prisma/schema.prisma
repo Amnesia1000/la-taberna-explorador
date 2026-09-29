@@ -147,3 +147,18 @@ model playing_with_neon {
   name  String
   value Float? @db.Real
 }
+
+model CashMovement {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  date        DateTime @default(now())
+  type        String   @default("EXPENSE")
+  concept     String
+  amount      Float
+  rentalId    String?
+  notes       String?
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+  @@index([type])
+}
