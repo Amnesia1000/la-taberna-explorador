@@ -46,10 +46,10 @@ export default function GameCard({ game, onSelect, showAvailability = false, lab
       className="group relative w-full text-left focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b45309] rounded-sm transition-[transform] duration-300 hover:-translate-y-1.5"
       aria-label={`Ver ficha de ${game.name}`}
     >
-      {/* Ficha frame — aspect ratio ~4:5 matching the PNG */}
+      {/* Ficha frame — aspect ratio matching the PNG (657x912) */}
       <div
         className="relative w-full transition-[filter] duration-300 drop-shadow-[0_10px_16px_rgba(0,0,0,0.90)] group-hover:drop-shadow-[0_18px_24px_rgba(0,0,0,0.90)]"
-        style={{ aspectRatio: "4/5" }}
+        style={{ aspectRatio: "657/912" }}
       >
 
         {/* The ficha PNG frame on top (z-10) */}
@@ -119,7 +119,7 @@ export default function GameCard({ game, onSelect, showAvailability = false, lab
         {showAvailability && (
           <div
             className="absolute z-20"
-            style={{ top: "calc(46% - 5px)", left: "14.5%" }}
+            style={{ top: "calc(46% - 2px)", left: "14.5%" }}
           >
             <span className={`font-tavern text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-sm shadow-md backdrop-blur-[2px] ${game.stock > 0 ? "bg-[#14532d]/70 text-[#d1fae5]" : "bg-[#7f1d1d]/70 text-[#fecaca]"}`}>
               {game.stock > 0 ? "● Disponible" : "● Agotado"}

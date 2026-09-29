@@ -34,7 +34,7 @@ function CatalogSkeleton() {
         <div
           key={i}
           className="relative w-full animate-pulse"
-          style={{ aspectRatio: "4/5" }}
+          style={{ aspectRatio: "657/912" }}
         >
           <div className="absolute inset-0 bg-[#e9dcc3]/60 border-2 border-[#c8a774] rounded-sm" />
           <div className="absolute left-[13%] right-[9%] top-[5%] h-[50%] bg-[#3d2011]/30 rounded-sm" />
