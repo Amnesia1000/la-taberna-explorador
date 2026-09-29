@@ -38,3 +38,4 @@ prisma/dev.db-journal
 
 # local backups (use Vercel Blob copies in production)
 backups/
+exported_data.json
