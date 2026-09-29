@@ -20,6 +20,7 @@ import {
   ChevronDown,
   Library,
   ClipboardList,
+  CalendarDays,
 } from "lucide-react";
 import { useState } from "react";
 import { ASSETS } from "@/lib/assets";
@@ -63,6 +64,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/reservations", label: "Reservas", icon: CalendarCheck },
       { href: "/admin/users", label: "Clientes", icon: Users },
       { href: "/admin/caja", label: "Caja", icon: Wallet },
+      { href: "/admin/calendario", label: "Calendario", icon: CalendarDays },
     ],
   },
 ];
