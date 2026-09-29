@@ -12,13 +12,10 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-function startOfWeek(base: Date): Date {
-  const d = new Date(base);
-  d.setHours(0, 0, 0, 0);
-  const day = (d.getDay() + 6) % 7; // lunes = 0
-  d.setDate(d.getDate() - day);
-  return d;
-}
+const MESES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
 
 function addDays(d: Date, n: number): Date {
   const c = new Date(d);
@@ -32,7 +29,7 @@ export default function AdminCalendarioPage() {
   const [rentals, setRentals] = useState<RentalWithDetails[]>([]);
   const [reservations, setReservations] = useState<ReservationWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
-  const [weekOffset, setWeekOffset] = useState(0);
+  const [monthOffset, setMonthOffset] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -44,9 +41,13 @@ export default function AdminCalendarioPage() {
     })();
   }, []);
 
-  const weekStart = addDays(startOfWeek(new Date()), weekOffset * 7);
-  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const todayStr = new Date().toDateString();
+  const now = new Date();
+  const monthBase = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  const monthStart = new Date(monthBase.getFullYear(), monthBase.getMonth(), 1);
+  const leadBlanks = (monthStart.getDay() + 6) % 7; // lunes = 0
+  const daysInMonth = new Date(monthBase.getFullYear(), monthBase.getMonth() + 1, 0).getDate();
+  const days = Array.from({ length: daysInMonth }, (_, i) => addDays(monthStart, i));
+  const todayStr = now.toDateString();
 
   const covers = (day: Date, start: Date, end: Date) => {
     const d = new Date(day); d.setHours(0, 0, 0, 0);
@@ -69,23 +70,26 @@ export default function AdminCalendarioPage() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setWeekOffset((o) => o - 1)}
-            aria-label="Semana anterior"
+            onClick={() => setMonthOffset((o) => o - 1)}
+            aria-label="Mes anterior"
             className="p-2 border border-zinc-300 bg-white hover:bg-zinc-100 transition"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
+          <span className="font-mono text-sm uppercase font-bold text-zinc-900 min-w-36 text-center">
+            {MESES[monthBase.getMonth()]} {monthBase.getFullYear()}
+          </span>
           <button
             type="button"
-            onClick={() => setWeekOffset(0)}
+            onClick={() => setMonthOffset(0)}
             className="px-3 h-9 border border-zinc-300 bg-white hover:bg-zinc-100 font-mono text-xs uppercase transition"
           >
             Hoy
           </button>
           <button
             type="button"
-            onClick={() => setWeekOffset((o) => o + 1)}
-            aria-label="Semana siguiente"
+            onClick={() => setMonthOffset((o) => o + 1)}
+            aria-label="Mes siguiente"
             className="p-2 border border-zinc-300 bg-white hover:bg-zinc-100 transition"
           >
             <ChevronRight className="w-4 h-4" />
@@ -99,46 +103,62 @@ export default function AdminCalendarioPage() {
           <p className="font-mono text-xs text-zinc-500 uppercase">Cargando semana...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-7 gap-3">
-          {days.map((day, i) => {
-            const dayRentals = rentals.filter(
-              (r) => (r.status === "ACTIVE" || r.status === "LATE") &&
-                covers(day, new Date(r.startDate), new Date(r.expectedEndDate))
-            );
-            const dayRes = reservations.filter(
-              (r) => r.status === "PENDING" &&
-                covers(day, new Date(r.createdAt), new Date(r.expectedEndDate))
-            );
-            const isToday = day.toDateString() === todayStr;
-            return (
-              <div
-                key={i}
-                className={`border bg-white p-3 shadow-sm ${isToday ? "border-2 border-amber-600" : "border-zinc-200"}`}
-              >
-                <div className="flex items-baseline justify-between mb-2">
-                  <span className="font-mono text-[11px] uppercase text-zinc-500">{DIAS[i]}</span>
-                  <span className={`font-mono text-lg font-bold ${isToday ? "text-amber-700" : "text-zinc-900"}`}>
+        <div>
+          <div className="grid grid-cols-7 gap-2 mb-2">
+            {DIAS.map((d) => (
+              <div key={d} className="font-mono text-[11px] uppercase text-zinc-500 text-center">
+                {d}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-2">
+            {Array.from({ length: leadBlanks }).map((_, i) => (
+              <div key={`b-${i}`} />
+            ))}
+            {days.map((day) => {
+              const dayRentals = rentals.filter(
+                (r) => (r.status === "ACTIVE" || r.status === "LATE") &&
+                  covers(day, new Date(r.startDate), new Date(r.expectedEndDate))
+              );
+              const dayRes = reservations.filter(
+                (r) => r.status === "PENDING" &&
+                  covers(day, new Date(r.createdAt), new Date(r.expectedEndDate))
+              );
+              const isToday = day.toDateString() === todayStr;
+              const shown = [...dayRentals.map((r) => ({ id: r.id, label: r.game.name, res: false, title: `${r.game.name} - ${r.clientName} ${r.clientLastName}` })),
+                ...dayRes.map((r) => ({ id: r.id, label: `${r.game.name} (R)`, res: true, title: `Reserva: ${r.game.name} - ${r.clientName} ${r.clientLastName}` }))];
+              return (
+                <div
+                  key={day.toISOString()}
+                  className={`border bg-white p-1.5 shadow-sm min-h-20 ${isToday ? "border-2 border-amber-600" : "border-zinc-200"}`}
+                >
+                  <span className={`font-mono text-sm font-bold block leading-none mb-1 ${isToday ? "text-amber-700" : "text-zinc-900"}`}>
                     {day.getDate()}
                   </span>
+                  <div className="space-y-1">
+                    {shown.length === 0 ? (
+                      <p className="text-[10px] font-mono text-zinc-300 italic">·</p>
+                    ) : (
+                      <>
+                        {shown.slice(0, 3).map((s) => (
+                          <div
+                            key={s.id}
+                            title={s.title}
+                            className={`text-[10px] font-mono px-1 py-px rounded-sm truncate ${s.res ? "bg-amber-100 text-amber-900 border border-amber-300" : "bg-zinc-900 text-white"}`}
+                          >
+                            {s.label}
+                          </div>
+                        ))}
+                        {shown.length > 3 && (
+                          <p className="text-[10px] font-mono text-zinc-500">+{shown.length - 3} más</p>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  {dayRentals.length === 0 && dayRes.length === 0 && (
-                    <p className="text-[11px] font-mono text-zinc-300 italic">Libre</p>
-                  )}
-                  {dayRentals.map((r) => (
-                    <div key={r.id} className="text-[11px] font-mono bg-zinc-900 text-white px-1.5 py-1 rounded-sm truncate" title={`${r.game.name} - ${r.clientName} ${r.clientLastName}`}>
-                      {r.game.name}
-                    </div>
-                  ))}
-                  {dayRes.map((r) => (
-                    <div key={r.id} className="text-[11px] font-mono bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-1 rounded-sm truncate" title={`Reserva: ${r.game.name} - ${r.clientName} ${r.clientLastName}`}>
-                      {r.game.name} (R)
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
 
