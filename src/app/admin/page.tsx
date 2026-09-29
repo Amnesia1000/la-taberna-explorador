@@ -74,10 +74,10 @@ export default async function AdminDashboardPage() {
 
       {/* Metrics Wireframe Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="border border-zinc-200 bg-white p-5">
+        <div className="border border-zinc-200 border-t-4 border-t-amber-600 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs uppercase text-zinc-500">Títulos en Catálogo</span>
-            <Dices className="w-4 h-4 text-zinc-400" />
+            <Dices className="w-4 h-4 text-amber-700" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <span className="font-mono text-3xl font-bold text-zinc-900">{totalGames}</span>
@@ -85,10 +85,10 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="border border-zinc-200 bg-white p-5">
+        <div className="border border-zinc-200 border-t-4 border-t-amber-600 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs uppercase text-zinc-500">Alquileres Activos</span>
-            <Repeat className="w-4 h-4 text-zinc-700" />
+            <Repeat className="w-4 h-4 text-amber-700" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <span className="font-mono text-3xl font-bold text-zinc-900">{activeRentals}</span>
@@ -96,10 +96,10 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="border border-zinc-200 bg-white p-5">
+        <div className="border border-zinc-200 border-t-4 border-t-amber-600 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs uppercase text-zinc-500">Reservas Pendientes</span>
-            <CalendarCheck className="w-4 h-4 text-zinc-700" />
+            <CalendarCheck className="w-4 h-4 text-amber-700" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <span className="font-mono text-3xl font-bold text-zinc-900">{pendingReservations}</span>
@@ -107,10 +107,10 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="border border-zinc-200 bg-white p-5">
+        <div className="border border-zinc-200 border-t-4 border-t-amber-600 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs uppercase text-zinc-500">Clientes Registrados</span>
-            <Users className="w-4 h-4 text-zinc-400" />
+            <Users className="w-4 h-4 text-amber-700" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <span className="font-mono text-3xl font-bold text-zinc-900">{totalUsers}</span>
@@ -122,7 +122,7 @@ export default async function AdminDashboardPage() {
       {/* Two Column Section: Recent Rentals & Pending Reservations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Rentals */}
-        <div className="border border-zinc-200 bg-white p-6">
+        <div className="border border-zinc-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between pb-4 mb-4 border-b border-zinc-200">
             <div>
               <h3 className="font-mono text-sm uppercase font-bold text-zinc-900">
@@ -183,7 +183,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Pending Reservations */}
-        <div className="border border-zinc-200 bg-white p-6">
+        <div className="border border-zinc-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between pb-4 mb-4 border-b border-zinc-200">
             <div>
               <h3 className="font-mono text-sm uppercase font-bold text-zinc-900">

@@ -403,7 +403,7 @@ export default function AdminExpansionsPage() {
         ) : (
           <table className="w-full text-left font-mono text-xs border-collapse">
             <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50 uppercase text-zinc-500">
+              <tr className="bg-[#24130a] text-[#e2b17b] uppercase border-b-2 border-[#8c5828]">
                 <th className="p-3 w-16 text-center">Img</th>
                 <th className="p-3">Expansión / Juego Base</th>
                 <th className="p-3 text-center">Jugadores</th>
@@ -415,7 +415,7 @@ export default function AdminExpansionsPage() {
             </thead>
             <tbody className="divide-y divide-zinc-200">
               {filteredExpansions.map((exp) => (
-                <tr key={exp.id} className="hover:bg-zinc-50/80 transition">
+                <tr key={exp.id} className="hover:bg-amber-50/70 transition">
                   <td className="p-3 text-center">
                     <div className="relative w-10 h-10 border border-zinc-300 bg-zinc-100 overflow-hidden mx-auto">
                       {exp.image ? (
@@ -424,7 +424,7 @@ export default function AdminExpansionsPage() {
                           alt={exp.name}
                           fill
                           sizes="40px"
-                          className="object-cover grayscale"
+                          className="object-cover"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[8px] text-zinc-400">
@@ -457,8 +457,19 @@ export default function AdminExpansionsPage() {
                       ? `${exp.playtime}-${exp.maxPlaytime} min`
                       : `${exp.playtime} min`}
                   </td>
-                  <td className="p-3 text-right font-bold text-zinc-900">
-                    ${exp.price.toLocaleString("es-AR")}
+                  <td className="p-3 text-right">
+                    <span className="font-bold text-zinc-900 block">
+                      ${exp.price.toLocaleString("es-AR")}
+                    </span>
+                    {exp.stock > 0 ? (
+                      <span className="inline-block mt-1 text-[10px] font-bold uppercase px-1.5 py-px rounded-sm bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        Stock: {exp.stock}
+                      </span>
+                    ) : (
+                      <span className="inline-block mt-1 text-[10px] font-bold uppercase px-1.5 py-px rounded-sm bg-red-100 text-red-800 border border-red-300">
+                        Agotado
+                      </span>
+                    )}
                   </td>
                   <td className="p-3 text-center text-[10px] text-zinc-500">
                     {exp.components ? (
@@ -500,10 +511,10 @@ export default function AdminExpansionsPage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
           <div className="relative w-full max-w-2xl bg-white border-2 border-zinc-900 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between bg-zinc-50">
+            <div className="px-4 py-3 border-b-2 border-[#8c5828] flex items-center justify-between wood-beam">
               <div className="flex items-center gap-2">
-                <Puzzle className="w-4 h-4 text-amber-700" />
-                <h3 className="font-mono text-sm uppercase font-bold text-zinc-900">
+                <Puzzle className="w-4 h-4 text-[#f59e0b]" />
+                <h3 className="font-tavern text-sm uppercase font-bold text-[#fef3c7] tracking-wider">
                   {editingExpansion
                     ? `Editar Expansión: ${editingExpansion.name}`
                     : "Nueva Expansión"}
@@ -512,7 +523,7 @@ export default function AdminExpansionsPage() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-zinc-500 hover:text-zinc-950"
+                className="p-1 text-[#e2b17b] hover:text-white hover:bg-[#4a2612] rounded-sm transition"
               >
                 <X className="w-5 h-5" />
               </button>

@@ -63,8 +63,8 @@ export default function AdminGamesPage() {
     dice: 0,
     tiles: 0,
   });
-  
-  const [otherComponents, setOtherComponents] = useState<{quantity: number, name: string}[]>([]);
+
+  const [otherComponents, setOtherComponents] = useState<{ quantity: number, name: string }[]>([]);
   const [newOtherQty, setNewOtherQty] = useState(1);
   const [newOtherName, setNewOtherName] = useState("");
 
@@ -130,9 +130,9 @@ export default function AdminGamesPage() {
 
   const handleOpenEdit = (game: any) => {
     setEditingGame(game);
-    
+
     // Parse others
-    let parsedOthers: {quantity: number, name: string}[] = [];
+    let parsedOthers: { quantity: number, name: string }[] = [];
     if (game.components?.othersDescription) {
       try {
         const json = JSON.parse(game.components.othersDescription);
@@ -147,11 +147,11 @@ export default function AdminGamesPage() {
           game.components.othersDescription.trim() !== "[]" &&
           game.components.othersDescription.trim() !== "{}"
         ) {
-          parsedOthers = [{quantity: game.components.others || 1, name: game.components.othersDescription}];
+          parsedOthers = [{ quantity: game.components.others || 1, name: game.components.othersDescription }];
         }
       }
     } else if (game.components?.others > 0) {
-       parsedOthers = [{quantity: game.components.others, name: "Otros"}];
+      parsedOthers = [{ quantity: game.components.others, name: "Otros" }];
     }
 
     setFormData({
@@ -221,7 +221,7 @@ export default function AdminGamesPage() {
     data.append("tokens", formData.tokens.toString());
     data.append("dice", formData.dice.toString());
     data.append("tiles", formData.tiles.toString());
-    
+
     // Total others count and serialized description
     const validOthers = otherComponents.filter((c) => c && c.name && c.name.trim() !== "");
     const totalOthers = validOthers.reduce((acc, curr) => acc + (curr.quantity || 1), 0);
@@ -352,7 +352,7 @@ export default function AdminGamesPage() {
         ) : (
           <table className="w-full text-left font-mono text-xs border-collapse">
             <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50 uppercase text-zinc-500">
+              <tr className="bg-[#24130a] text-[#e2b17b] uppercase border-b-2 border-[#8c5828]">
                 <th className="p-3 w-16 text-center">Img</th>
                 <th className="p-3">Título / Categoría</th>
                 <th className="p-3 text-center">Jugadores</th>
@@ -364,7 +364,7 @@ export default function AdminGamesPage() {
             </thead>
             <tbody className="divide-y divide-zinc-200">
               {filteredGames.map((game) => (
-                <tr key={game.id} className="hover:bg-zinc-50/80 transition">
+                <tr key={game.id} className="hover:bg-amber-50/70 transition">
                   <td className="p-3 text-center">
                     <div className="relative w-10 h-10 border border-zinc-300 bg-zinc-100 overflow-hidden mx-auto">
                       {game.image ? (
@@ -373,7 +373,7 @@ export default function AdminGamesPage() {
                           alt={game.name}
                           fill
                           sizes="40px"
-                          className="object-cover grayscale"
+                          className="object-cover"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[8px] text-zinc-400">
@@ -406,8 +406,19 @@ export default function AdminGamesPage() {
                       ? `${game.playtime}-${game.maxPlaytime} min`
                       : `${game.playtime} min`}
                   </td>
-                  <td className="p-3 text-right font-bold text-zinc-900">
-                    ${game.price.toLocaleString("es-AR")}
+                  <td className="p-3 text-right">
+                    <span className="font-bold text-zinc-900 block">
+                      ${game.price.toLocaleString("es-AR")}
+                    </span>
+                    {game.stock > 0 ? (
+                      <span className="inline-block mt-1 text-[10px] font-bold uppercase px-1.5 py-px rounded-sm bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        Stock: {game.stock}
+                      </span>
+                    ) : (
+                      <span className="inline-block mt-1 text-[10px] font-bold uppercase px-1.5 py-px rounded-sm bg-red-100 text-red-800 border border-red-300">
+                        Agotado
+                      </span>
+                    )}
                   </td>
                   <td className="p-3 text-center text-[10px] text-zinc-500">
                     {game.components ? (
@@ -448,21 +459,21 @@ export default function AdminGamesPage() {
       {/* Modal CRUD: Create / Edit */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-2xl bg-white border-2 border-zinc-900 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between bg-zinc-50">
-              <h3 className="font-mono text-sm uppercase font-bold text-zinc-900">
+          <div className="relative w-full max-w-3xl bg-white border-2 border-zinc-900 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="px-4 py-3 border-b-2 border-[#8c5828] flex items-center justify-between wood-beam">
+              <h3 className="font-tavern text-sm uppercase font-bold text-[#fef3c7] tracking-wider">
                 {editingGame ? `Editar Juego: ${editingGame.name}` : "Nuevo Juego en Catálogo"}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-zinc-500 hover:text-zinc-950"
+                className="p-1 text-[#e2b17b] hover:text-white hover:bg-[#4a2612] rounded-sm transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5">
+            <form onSubmit={handleSubmit} className="p-4 overflow-y-auto space-y-4">
               {errorMessage && (
                 <div className="border border-red-300 bg-red-50 p-3 text-xs text-red-800 font-mono flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
@@ -471,9 +482,9 @@ export default function AdminGamesPage() {
               )}
 
               {/* Informacion Principal */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-xs font-mono uppercase font-bold text-zinc-600 mb-1">
                     Nombre del Juego *
                   </label>
                   <input
@@ -481,27 +492,27 @@ export default function AdminGamesPage() {
                     required
                     value={formData.name || ""}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="wire-input text-xs"
+                    className="wire-input text-xs w-full"
                     placeholder="Ej: Catan, Carcassonne..."
                   />
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
+                <div className="col-span-2">
+                  <label className="block text-xs font-mono uppercase font-bold text-zinc-600 mb-1">
                     Descripción Breve *
                   </label>
                   <textarea
-                    rows={6}
+                    rows={5}
                     required
                     value={formData.description || ""}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="wire-input text-xs"
+                    className="wire-input text-xs w-full"
                     placeholder="Resumen del juego, mecánica principal y dinámica..."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
+                  <label className="block text-xs font-mono uppercase font-bold text-zinc-600 mb-1">
                     Categoría *
                   </label>
                   <input
@@ -509,28 +520,29 @@ export default function AdminGamesPage() {
                     required
                     value={formData.category || ""}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="wire-input text-xs"
+                    className="wire-input text-xs w-full"
                     placeholder="Estrategia, Party, Cooperativo..."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
+                  <label className="block text-xs font-mono uppercase font-bold text-zinc-600 mb-1">
                     Tarifa de Alquiler ($) *
                   </label>
                   <input
                     type="number"
                     min="0"
+                    step="1000"
                     required
                     value={formData.price ?? 0}
                     onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                    className="wire-input text-xs"
+                    className="wire-input text-xs w-24"
                   />
                 </div>
 
 
                 <div>
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
+                  <label className="block text-xs font-mono uppercase font-bold text-zinc-600 mb-1">
                     Stock (ejemplares, 0 = agotado) *
                   </label>
                   <input
@@ -539,15 +551,15 @@ export default function AdminGamesPage() {
                     required
                     value={formData.stock ?? 1}
                     onChange={(e) => setFormData({ ...formData, stock: Math.max(0, parseInt(e.target.value) || 0) })}
-                    className="wire-input text-xs"
+                    className="wire-input text-xs w-24"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
+                  <label className="block text-xs font-mono uppercase font-bold text-zinc-600 mb-1">
                     Tiempo de Juego (Mín - Máx Minutos) *
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex gap-2">
                     <input
                       type="number"
                       min="5"
@@ -555,7 +567,7 @@ export default function AdminGamesPage() {
                       required
                       value={formData.playtime ?? 30}
                       onChange={(e) => setFormData({ ...formData, playtime: parseInt(e.target.value) || 30 })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-24"
                     />
                     <input
                       type="number"
@@ -563,23 +575,23 @@ export default function AdminGamesPage() {
                       placeholder="Máx"
                       value={formData.maxPlaytime ?? 60}
                       onChange={(e) => setFormData({ ...formData, maxPlaytime: parseInt(e.target.value) || 0 })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-24"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
+                  <label className="block text-xs font-mono uppercase font-bold text-zinc-600 mb-1">
                     Jugadores (Mín - Máx) *
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex gap-2">
                     <input
                       type="number"
                       min="1"
                       placeholder="Mín"
                       value={formData.minPlayers ?? 1}
                       onChange={(e) => setFormData({ ...formData, minPlayers: parseInt(e.target.value) || 1 })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-24"
                     />
                     <input
                       type="number"
@@ -587,13 +599,13 @@ export default function AdminGamesPage() {
                       placeholder="Máx"
                       value={formData.maxPlayers ?? 4}
                       onChange={(e) => setFormData({ ...formData, maxPlayers: parseInt(e.target.value) || 4 })}
-                      className="wire-input text-xs"
+                      className="wire-input text-xs w-24"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono uppercase text-zinc-600 mb-1">
+                  <label className="block text-xs font-mono uppercase font-bold text-zinc-600 mb-1">
                     Edad Mínima Recomendada *
                   </label>
                   <input
@@ -601,11 +613,11 @@ export default function AdminGamesPage() {
                     min="3"
                     value={formData.minAge ?? 8}
                     onChange={(e) => setFormData({ ...formData, minAge: parseInt(e.target.value) || 8 })}
-                    className="wire-input text-xs"
+                    className="wire-input text-xs w-24"
                   />
                 </div>
 
-                <div className="sm:col-span-2 border border-amber-300/80 bg-amber-50/70 p-3.5 flex items-start gap-3 rounded-sm">
+                <div className="col-span-2 border border-amber-300/80 bg-amber-50/70 p-3 flex items-start gap-3 rounded-sm">
                   <input
                     type="checkbox"
                     id="hasExpansions"
@@ -626,222 +638,218 @@ export default function AdminGamesPage() {
               </div>
 
               {/* Manejo de Imagen 1 e Imagen 2 */}
-              <div className="border border-zinc-200 p-4 bg-zinc-50/50 space-y-4">
+              <div className="border border-zinc-200 p-2 bg-zinc-50/50 space-y-2">
                 {/* Imagen Principal */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs uppercase font-bold text-zinc-700">
-                      Imagen Principal
-                    </span>
-                    <div className="flex items-center gap-2 font-mono text-[11px]">
-                      <button
-                        type="button"
-                        onClick={() => setImageMode1("URL")}
-                        className={`px-2 py-0.5 border ${imageMode1 === "URL"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
-                      >
-                        <LinkIcon className="w-3 h-3 inline mr-1" />
-                        URL
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setImageMode1("FILE")}
-                        className={`px-2 py-0.5 border ${imageMode1 === "FILE"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
-                      >
-                        <Upload className="w-3 h-3 inline mr-1" />
-                        Archivo
-                      </button>
-                    </div>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                  <span className="font-mono text-[11px] uppercase font-bold text-zinc-700 shrink-0 w-40">
+                    Imagen Principal
+                  </span>
+                  <div className="flex items-center gap-1 font-mono text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setImageMode1("URL")}
+                      className={`px-1.5 h-8 border ${imageMode1 === "URL"
+                        ? "bg-zinc-900 text-white border-zinc-900"
+                        : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
+                    >
+                      <LinkIcon className="w-3 h-3 inline mr-1" />
+                      URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageMode1("FILE")}
+                      className={`px-1.5 h-8 border ${imageMode1 === "FILE"
+                        ? "bg-zinc-900 text-white border-zinc-900"
+                        : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
+                    >
+                      <Upload className="w-3 h-3 inline mr-1" />
+                      Archivo
+                    </button>
                   </div>
-
-                  {imageMode1 === "URL" ? (
-                    <input
-                      key="input-img1-url"
-                      type="url"
-                      placeholder="https://..."
-                      value={formData.imageUrl || ""}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                      className="wire-input text-xs"
-                    />
-                  ) : (
-                    <input
-                      key="input-img1-file"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setSelectedFile1(e.target.files?.[0] || null)}
-                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
-                    />
-                  )}
+                  <div className="min-w-44 flex-1">
+                    {imageMode1 === "URL" ? (
+                      <input
+                        key="input-img1-url"
+                        type="url"
+                        placeholder="https://..."
+                        value={formData.imageUrl || ""}
+                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                        className="wire-input text-xs w-full"
+                      />
+                    ) : (
+                      <input
+                        key="input-img1-file"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setSelectedFile1(e.target.files?.[0] || null)}
+                        className="wire-input text-xs w-full file:mr-3 file:py-0.5 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {/* Imagen Secundaria / Extra */}
-                <div className="space-y-2 pt-3 border-t border-zinc-200">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs uppercase font-bold text-zinc-700">
-                      Imagen Secundaria (Carrusel)
-                    </span>
-                    <div className="flex items-center gap-2 font-mono text-[11px]">
-                      <button
-                        type="button"
-                        onClick={() => setImageMode2("URL")}
-                        className={`px-2 py-0.5 border ${imageMode2 === "URL"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
-                      >
-                        <LinkIcon className="w-3 h-3 inline mr-1" />
-                        URL
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setImageMode2("FILE")}
-                        className={`px-2 py-0.5 border ${imageMode2 === "FILE"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
-                      >
-                        <Upload className="w-3 h-3 inline mr-1" />
-                        Archivo
-                      </button>
-                    </div>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pt-2 border-t border-zinc-200">
+                  <span className="font-mono text-[11px] uppercase font-bold text-zinc-700 shrink-0 w-40">
+                    Imagen Sec. (Carrusel)
+                  </span>
+                  <div className="flex items-center gap-1 font-mono text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setImageMode2("URL")}
+                      className={`px-1.5 h-8 border ${imageMode2 === "URL"
+                        ? "bg-zinc-900 text-white border-zinc-900"
+                        : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
+                    >
+                      <LinkIcon className="w-3 h-3 inline mr-1" />
+                      URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageMode2("FILE")}
+                      className={`px-1.5 h-8 border ${imageMode2 === "FILE"
+                        ? "bg-zinc-900 text-white border-zinc-900"
+                        : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
+                    >
+                      <Upload className="w-3 h-3 inline mr-1" />
+                      Archivo
+                    </button>
                   </div>
-
-                  {imageMode2 === "URL" ? (
-                    <input
-                      key="input-img2-url"
-                      type="url"
-                      placeholder="https://..."
-                      value={formData.imageUrl2 || ""}
-                      onChange={(e) => setFormData({ ...formData, imageUrl2: e.target.value })}
-                      className="wire-input text-xs"
-                    />
-                  ) : (
-                    <input
-                      key="input-img2-file"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setSelectedFile2(e.target.files?.[0] || null)}
-                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
-                    />
-                  )}
+                  <div className="min-w-44 flex-1">
+                    {imageMode2 === "URL" ? (
+                      <input
+                        key="input-img2-url"
+                        type="url"
+                        placeholder="https://..."
+                        value={formData.imageUrl2 || ""}
+                        onChange={(e) => setFormData({ ...formData, imageUrl2: e.target.value })}
+                        className="wire-input text-xs w-full"
+                      />
+                    ) : (
+                      <input
+                        key="input-img2-file"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setSelectedFile2(e.target.files?.[0] || null)}
+                        className="wire-input text-xs w-full file:mr-3 file:py-0.5 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {/* QR Manual */}
-                <div className="space-y-2 pt-3 border-t border-zinc-200">
-                  <div className="flex items-center justify-between">
-                     <span className="font-mono text-xs uppercase font-bold text-zinc-700">
-                      QR Manual (Opcional)
-                    </span>
-                    <div className="flex items-center gap-2 font-mono text-[11px]">
-                      <button
-                        type="button"
-                        onClick={() => setQrManualMode("URL")}
-                        className={`px-2 py-0.5 border ${qrManualMode === "URL"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
-                      >
-                        <LinkIcon className="w-3 h-3 inline mr-1" />
-                        URL
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setQrManualMode("FILE")}
-                        className={`px-2 py-0.5 border ${qrManualMode === "FILE"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
-                      >
-                        <Upload className="w-3 h-3 inline mr-1" />
-                        Archivo
-                      </button>
-                    </div>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pt-2 border-t border-zinc-200">
+                  <span className="font-mono text-[11px] uppercase font-bold text-zinc-700 shrink-0 w-40">
+                    QR Manual (Opcional)
+                  </span>
+                  <div className="flex items-center gap-1 font-mono text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setQrManualMode("URL")}
+                      className={`px-1.5 h-8 border ${qrManualMode === "URL"
+                        ? "bg-zinc-900 text-white border-zinc-900"
+                        : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
+                    >
+                      <LinkIcon className="w-3 h-3 inline mr-1" />
+                      URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQrManualMode("FILE")}
+                      className={`px-1.5 h-8 border ${qrManualMode === "FILE"
+                        ? "bg-zinc-900 text-white border-zinc-900"
+                        : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
+                    >
+                      <Upload className="w-3 h-3 inline mr-1" />
+                      Archivo
+                    </button>
                   </div>
-
-                  {qrManualMode === "URL" ? (
-                    <input
-                      key="input-qrm-url"
-                      type="url"
-                      placeholder="https://..."
-                      value={formData.qrManualUrl || ""}
-                      onChange={(e) => setFormData({ ...formData, qrManualUrl: e.target.value })}
-                      className="wire-input text-xs"
-                    />
-                  ) : (
-                    <input
-                      key="input-qrm-file"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setSelectedQrManualFile(e.target.files?.[0] || null)}
-                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
-                    />
-                  )}
+                  <div className="min-w-44 flex-1">
+                    {qrManualMode === "URL" ? (
+                      <input
+                        key="input-qrm-url"
+                        type="url"
+                        placeholder="https://..."
+                        value={formData.qrManualUrl || ""}
+                        onChange={(e) => setFormData({ ...formData, qrManualUrl: e.target.value })}
+                        className="wire-input text-xs w-full"
+                      />
+                    ) : (
+                      <input
+                        key="input-qrm-file"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setSelectedQrManualFile(e.target.files?.[0] || null)}
+                        className="wire-input text-xs w-full file:mr-3 file:py-0.5 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {/* QR Video */}
-                <div className="space-y-2 pt-3 border-t border-zinc-200">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs uppercase font-bold text-zinc-700">
-                      QR Video (Opcional)
-                    </span>
-                    <div className="flex items-center gap-2 font-mono text-[11px]">
-                      <button
-                        type="button"
-                        onClick={() => setQrVideoMode("URL")}
-                        className={`px-2 py-0.5 border ${qrVideoMode === "URL"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
-                      >
-                        <LinkIcon className="w-3 h-3 inline mr-1" />
-                        URL
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setQrVideoMode("FILE")}
-                        className={`px-2 py-0.5 border ${qrVideoMode === "FILE"
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-300"
-                          }`}
-                      >
-                        <Upload className="w-3 h-3 inline mr-1" />
-                        Archivo
-                      </button>
-                    </div>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pt-2 border-t border-zinc-200">
+                  <span className="font-mono text-[11px] uppercase font-bold text-zinc-700 shrink-0 w-40">
+                    QR Video (Opcional)
+                  </span>
+                  <div className="flex items-center gap-1 font-mono text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setQrVideoMode("URL")}
+                      className={`px-1.5 h-8 border ${qrVideoMode === "URL"
+                        ? "bg-zinc-900 text-white border-zinc-900"
+                        : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
+                    >
+                      <LinkIcon className="w-3 h-3 inline mr-1" />
+                      URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQrVideoMode("FILE")}
+                      className={`px-1.5 h-8 border ${qrVideoMode === "FILE"
+                        ? "bg-zinc-900 text-white border-zinc-900"
+                        : "bg-white text-zinc-600 border-zinc-300"
+                        }`}
+                    >
+                      <Upload className="w-3 h-3 inline mr-1" />
+                      Archivo
+                    </button>
                   </div>
-
-                  {qrVideoMode === "URL" ? (
-                    <input
-                      key="input-qrv-url"
-                      type="url"
-                      placeholder="https://..."
-                      value={formData.qrVideoUrl || ""}
-                      onChange={(e) => setFormData({ ...formData, qrVideoUrl: e.target.value })}
-                      className="wire-input text-xs"
-                    />
-                  ) : (
-                    <input
-                      key="input-qrv-file"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setSelectedQrVideoFile(e.target.files?.[0] || null)}
-                      className="wire-input text-xs file:mr-3 file:py-1 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
-                    />
-                  )}
+                  <div className="min-w-44 flex-1">
+                    {qrVideoMode === "URL" ? (
+                      <input
+                        key="input-qrv-url"
+                        type="url"
+                        placeholder="https://..."
+                        value={formData.qrVideoUrl || ""}
+                        onChange={(e) => setFormData({ ...formData, qrVideoUrl: e.target.value })}
+                        className="wire-input text-xs w-full"
+                      />
+                    ) : (
+                      <input
+                        key="input-qrv-file"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setSelectedQrVideoFile(e.target.files?.[0] || null)}
+                        className="wire-input text-xs w-full file:mr-3 file:py-0.5 file:px-2 file:border file:border-zinc-300 file:text-xs file:font-mono file:bg-zinc-100"
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Desglose de Componentes Iniciales */}
-              <div className="border border-zinc-200 p-4 bg-zinc-50/50 space-y-3">
-                <span className="font-mono text-xs uppercase font-bold text-zinc-700 block">
+              <div className="border border-zinc-200 p-2 bg-zinc-50/50 space-y-2">
+                <span className="font-mono text-[11px] uppercase font-bold text-zinc-700 block">
                   Inventario Inicial de Componentes (para Remito Digital)
                 </span>
-                
+
                 {/* Standard components in a cleaner layout (max 2 lines) */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
@@ -891,7 +899,7 @@ export default function AdminGamesPage() {
                   <label className="text-[10px] font-mono text-zinc-700 font-bold uppercase block mb-2">
                     Otros Componentes
                   </label>
-                  
+
                   <div className="flex items-center gap-2 mb-3">
                     <input
                       type="number"
@@ -925,7 +933,7 @@ export default function AdminGamesPage() {
                           setNewOtherQty(1);
                         }
                       }}
-                      className="px-3 py-2 bg-zinc-900 text-white font-mono hover:bg-zinc-800 transition rounded-sm"
+                      className="h-8 w-8 inline-flex items-center justify-center bg-zinc-900 text-white font-mono hover:bg-zinc-800 transition rounded-sm"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -957,14 +965,14 @@ export default function AdminGamesPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100 font-mono text-xs uppercase tracking-wider"
+                  className="px-4 h-8 border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100 font-mono text-xs uppercase tracking-wider"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-5 py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-mono text-xs uppercase tracking-wider flex items-center gap-2 disabled:opacity-50"
+                  className="px-5 h-8 bg-zinc-900 hover:bg-zinc-800 text-white font-mono text-xs uppercase tracking-wider flex items-center gap-2 disabled:opacity-50"
                 >
                   {saving && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   <span>{editingGame ? "Guardar Cambios" : "Crear Juego"}</span>
