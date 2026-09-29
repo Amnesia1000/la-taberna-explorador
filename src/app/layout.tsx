@@ -20,6 +20,7 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  manifest: "/manifest.webmanifest",
   title: {
     default: "La Taberna del Explorador // Alquiler de Juegos de Mesa",
     template: "%s // La Taberna del Explorador",

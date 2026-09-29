@@ -441,11 +441,27 @@ export default function RemitoModal({
                 }}
                 className="wire-input text-xs font-mono"
               >
-                {games.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name} ({g.category}) - Stock: {g.stock}
-                  </option>
-                ))}
+                {(() => {
+                  const base = games.filter((g) => g.hasExpansions);
+                  const resto = games.filter((g) => !g.hasExpansions);
+                  const byName = (a: { name: string }, b: { name: string }) =>
+                    a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+                  const opt = (g: (typeof games)[number]) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name} ({g.category}) - Stock: {g.stock}
+                    </option>
+                  );
+                  return (
+                    <>
+                      {base.length > 0 && (
+                        <optgroup label="Juegos base (con expansiones)">
+                          {[...base].sort(byName).map(opt)}
+                        </optgroup>
+                      )}
+                      {[...resto].sort(byName).map(opt)}
+                    </>
+                  );
+                })()}
               </select>
             </div>
 

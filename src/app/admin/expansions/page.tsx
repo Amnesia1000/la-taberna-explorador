@@ -297,7 +297,11 @@ export default function AdminExpansionsPage() {
       }
       return true;
     })
-    .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+    .sort((a, b) => {
+      const byBase = (a.game?.name ?? "").localeCompare(b.game?.name ?? "", "es", { sensitivity: "base" });
+      if (byBase !== 0) return byBase;
+      return a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+    });
 
   return (
     <div className="space-y-6">
