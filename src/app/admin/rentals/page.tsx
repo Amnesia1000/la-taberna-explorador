@@ -244,7 +244,7 @@ export default function AdminRentalsPage() {
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50 uppercase text-zinc-500">
+              <tr className="bg-[#24130a] text-[#e2b17b] uppercase border-b-2 border-[#8c5828]">
                 <th className="p-3">Juego</th>
                 <th className="p-3">Cliente</th>
                 <th className="p-3">Inicio</th>
@@ -260,7 +260,7 @@ export default function AdminRentalsPage() {
                   new Date(rental.expectedEndDate) < new Date();
 
                 return (
-                  <tr key={rental.id} className="hover:bg-zinc-50/80 transition">
+                  <tr key={rental.id} className="hover:bg-amber-50/70 transition">
                     <td className="p-3">
                       <span className="font-bold text-zinc-900 uppercase block">
                         {rental.game.name}
@@ -338,14 +338,14 @@ export default function AdminRentalsPage() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
           <div className="relative w-full max-w-xl bg-white border-2 border-zinc-900 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between bg-zinc-50">
-              <h3 className="font-mono text-sm uppercase font-bold text-zinc-900">
+            <div className="px-4 py-3 border-b-2 border-[#8c5828] flex items-center justify-between wood-beam">
+              <h3 className="font-tavern text-sm uppercase font-bold text-[#fef3c7] tracking-wider">
                 Registrar Nuevo Alquiler
               </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-zinc-500 hover:text-zinc-950"
+                className="p-1 text-[#e2b17b] hover:text-white hover:bg-[#4a2612] rounded-sm transition"
               >
                 <X className="w-5 h-5" />
               </button>

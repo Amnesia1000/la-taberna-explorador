@@ -220,7 +220,7 @@ export default function AdminReservationsPage() {
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50 uppercase text-zinc-500">
+              <tr className="bg-[#24130a] text-[#e2b17b] uppercase border-b-2 border-[#8c5828]">
                 <th className="p-3">Juego Solicitado</th>
                 <th className="p-3">Stock Actual</th>
                 <th className="p-3">Cliente Solicitante</th>
@@ -233,7 +233,7 @@ export default function AdminReservationsPage() {
             <tbody className="divide-y divide-zinc-200">
               {filteredReservations.map((res) => {
                 return (
-                  <tr key={res.id} className="hover:bg-zinc-50/80 transition">
+                  <tr key={res.id} className="hover:bg-amber-50/70 transition">
                     <td className="p-3">
                       <span className="font-bold text-zinc-900 uppercase block">
                         {res.game.name}
@@ -334,7 +334,7 @@ export default function AdminReservationsPage() {
       {/* Modal Nueva Reserva */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg bg-white border-2 border-zinc-900 shadow-2xl p-6 font-mono text-xs">
+          <div className="relative w-full max-w-lg bg-white border-2 border-zinc-900 border-t-4 border-t-[#b45309] shadow-2xl p-6 font-mono text-xs">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-200">
               <h3 className="text-sm uppercase font-bold text-zinc-900">
                 Registrar Nueva Reserva

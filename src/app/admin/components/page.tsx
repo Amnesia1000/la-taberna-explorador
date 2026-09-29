@@ -214,7 +214,7 @@ export default function AdminComponentsPage() {
               {filteredGames.map((game) => (
                 <React.Fragment key={game.id}>
                   {/* Fila Padre (Carpeta de Juego Principal) */}
-                  <tr className="hover:bg-zinc-50 transition bg-white">
+                  <tr className="hover:bg-amber-50/70 transition bg-white">
                     <td className="p-3 font-bold text-zinc-900 uppercase">
                       <div className="flex items-center gap-2">
                         <FolderOpen className="w-4 h-4 text-amber-700 shrink-0" />
