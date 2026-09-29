@@ -17,20 +17,51 @@ import {
   Scroll,
   LogOut,
   Wallet,
+  ChevronDown,
+  Library,
 } from "lucide-react";
 import { useState } from "react";
 import { ASSETS } from "@/lib/assets";
 import { logoutAdmin } from "@/lib/admin-auth";
 
-const NAV_ITEMS = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/admin/games", label: "Juegos", icon: Dices },
-  { href: "/admin/expansions", label: "Expansiones", icon: Puzzle },
-  { href: "/admin/components", label: "Componentes & Remito", icon: Layers },
-  { href: "/admin/rentals", label: "Alquileres", icon: Repeat },
-  { href: "/admin/reservations", label: "Reservas", icon: CalendarCheck },
-  { href: "/admin/users", label: "Clientes", icon: Users },
-  { href: "/admin/caja", label: "Caja", icon: Wallet },
+interface NavItem {
+  href: string;
+  label: string;
+  icon: any;
+  exact?: boolean;
+}
+
+interface NavGroup {
+  label: string | null;
+  icon?: any;
+  collapsible?: boolean;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: null,
+    items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true }],
+  },
+  {
+    label: "Catálogo",
+    icon: Library,
+    collapsible: true,
+    items: [
+      { href: "/admin/games", label: "Juegos", icon: Dices },
+      { href: "/admin/expansions", label: "Expansiones", icon: Puzzle },
+      { href: "/admin/components", label: "Componentes & Remito", icon: Layers },
+    ],
+  },
+  {
+    label: "Operación",
+    items: [
+      { href: "/admin/rentals", label: "Alquileres", icon: Repeat },
+      { href: "/admin/reservations", label: "Reservas", icon: CalendarCheck },
+      { href: "/admin/users", label: "Clientes", icon: Users },
+      { href: "/admin/caja", label: "Caja", icon: Wallet },
+    ],
+  },
 ];
 
 export default function AdminLayout({
@@ -41,6 +72,38 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    for (const g of NAV_GROUPS) {
+      if (g.collapsible && g.label) {
+        init[g.label] = g.items.some((i) =>
+          i.exact ? pathname === i.href : pathname.startsWith(i.href)
+        );
+      }
+    }
+    return init;
+  });
+
+  const renderItem = (item: NavItem, nested = false) => {
+    const isActive = item.exact
+      ? pathname === item.href
+      : pathname.startsWith(item.href);
+    const Icon = item.icon;
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={() => setSidebarOpen(false)}
+        className={`flex items-center gap-3 px-3.5 py-2.5 text-xs font-tavern uppercase tracking-wider border transition-all rounded-sm ${nested ? "ml-4 border-l-2 border-l-[#5a3219] pl-3" : ""} ${isActive
+            ? "bg-gradient-to-r from-[#b45309] to-[#92400e] text-white border-[#d97706] font-bold shadow-sm"
+            : "text-[#d1baa5] border-transparent hover:bg-[#2e1a0f] hover:text-[#ffffff]"
+          }`}
+      >
+        <Icon className={`w-4 h-4 ${isActive ? "text-[#fef08a]" : "text-[#b45309]"}`} />
+        <span>{item.label}</span>
+      </Link>
+    );
+  };
 
   if (pathname === "/admin/login") {
     return (
@@ -97,31 +160,30 @@ export default function AdminLayout({
 
           {/* Navigation Links */}
           <nav className="p-3 space-y-1">
-            <span className="px-3 py-1.5 text-[10px] font-tavern text-[#8a6b52] uppercase tracking-widest block font-bold">
-              Registros & Operaciones
-            </span>
-
-            {NAV_ITEMS.map((item) => {
-              const isActive = item.exact
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 text-xs font-tavern uppercase tracking-wider border transition-all rounded-sm ${isActive
-                      ? "bg-gradient-to-r from-[#b45309] to-[#92400e] text-white border-[#d97706] font-bold shadow-sm"
-                      : "text-[#d1baa5] border-transparent hover:bg-[#2e1a0f] hover:text-[#ffffff]"
-                    }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? "text-[#fef08a]" : "text-[#b45309]"}`} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+            {NAV_GROUPS.map((group) => (
+              <div key={group.label ?? "top"}>
+                {group.label && (
+                  group.collapsible ? (
+                    <button
+                      type="button"
+                      onClick={() => setOpenGroups((p) => ({ ...p, [group.label as string]: !p[group.label as string] }))}
+                      aria-expanded={!!openGroups[group.label]}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-tavern text-[#8a6b52] uppercase tracking-widest font-bold hover:text-[#e2b17b] transition"
+                    >
+                      {group.icon && <group.icon className="w-3.5 h-3.5" />}
+                      <span className="flex-1 text-left">{group.label}</span>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openGroups[group.label] ? "rotate-180" : ""}`} />
+                    </button>
+                  ) : (
+                    <span className="px-3 py-1.5 text-[10px] font-tavern text-[#8a6b52] uppercase tracking-widest block font-bold">
+                      {group.label}
+                    </span>
+                  )
+                )}
+                {(!group.collapsible || openGroups[group.label as string]) &&
+                  group.items.map((item) => renderItem(item, !!group.collapsible))}
+              </div>
+            ))}
           </nav>
         </div>
 
