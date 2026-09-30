@@ -7,6 +7,7 @@ import {
   saveGame,
   deleteGame,
   getCategories,
+  updateGamesBulk,
 } from "@/lib/actions/games";
 import { GameWithComponents } from "@/types";
 import {
@@ -29,6 +30,10 @@ export default function AdminGamesPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("TODOS");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulk, setBulk] = useState({ price: "", category: "", stock: "" });
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkMsg, setBulkMsg] = useState("");
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -85,6 +90,7 @@ export default function AdminGamesPage() {
     if (catRes.success && catRes.data) {
       setCategories(catRes.data);
     }
+    setSelected(new Set());
     setLoading(false);
   };
 
@@ -266,6 +272,47 @@ export default function AdminGamesPage() {
     setSaving(false);
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectFiltered = () => {
+    setSelected((prev) => {
+      const ids = filteredGames.map((g) => g.id);
+      const allIn = ids.length > 0 && ids.every((id) => prev.has(id));
+      if (allIn) {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      }
+      return new Set([...prev, ...ids]);
+    });
+  };
+
+  const applyBulk = async () => {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    setBulkMsg("");
+    const res = await updateGamesBulk([...selected], {
+      price: bulk.price.trim() === "" ? undefined : parseFloat(bulk.price) || 0,
+      category: bulk.category.trim() === "" ? undefined : bulk.category.trim(),
+      stock: bulk.stock.trim() === "" ? undefined : Math.max(0, parseInt(bulk.stock) || 0),
+    });
+    setBulkBusy(false);
+    if (res.success) {
+      setBulk({ price: "", category: "", stock: "" });
+      setBulkMsg(`Actualizados: ${res.count}`);
+      await loadData();
+    } else {
+      setBulkMsg(res.error || "Error al actualizar.");
+    }
+  };
+
   const filteredGames = games
     .filter((g) => {
       if (selectedCategory !== "TODOS" && g.category !== selectedCategory) return false;
@@ -335,6 +382,66 @@ export default function AdminGamesPage() {
         </div>
       </div>
 
+      {/* Bulk edit bar */}
+      {selected.size > 0 && (
+        <div className="border-2 border-amber-600 bg-amber-50 p-3 flex flex-col lg:flex-row lg:items-end gap-3 font-mono text-xs">
+          <span className="font-bold uppercase text-zinc-900 whitespace-nowrap">
+            {selected.size} seleccionado(s)
+          </span>
+          <div className="flex flex-wrap items-end gap-3 flex-1">
+            <div>
+              <label className="block text-[10px] uppercase text-zinc-500 mb-1">Tarifa $</label>
+              <input
+                type="number"
+                min="0"
+                step="1000"
+                value={bulk.price}
+                onChange={(e) => setBulk({ ...bulk, price: e.target.value })}
+                placeholder="—"
+                className="wire-input text-xs w-28"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase text-zinc-500 mb-1">Categoría</label>
+              <input
+                type="text"
+                value={bulk.category}
+                onChange={(e) => setBulk({ ...bulk, category: e.target.value })}
+                placeholder="—"
+                className="wire-input text-xs w-40"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase text-zinc-500 mb-1">Stock</label>
+              <input
+                type="number"
+                min="0"
+                value={bulk.stock}
+                onChange={(e) => setBulk({ ...bulk, stock: e.target.value })}
+                placeholder="—"
+                className="wire-input text-xs w-24"
+              />
+            </div>
+            <button
+              type="button"
+              disabled={bulkBusy}
+              onClick={applyBulk}
+              className="px-4 h-8 bg-zinc-900 hover:bg-zinc-800 text-white uppercase tracking-wider transition disabled:opacity-50"
+            >
+              {bulkBusy ? "Aplicando…" : "Aplicar"}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSelected(new Set()); setBulkMsg(""); }}
+              className="px-4 h-8 bg-white hover:bg-zinc-100 border border-zinc-300 uppercase tracking-wider transition"
+            >
+              Limpiar
+            </button>
+          </div>
+          {bulkMsg && <span className="text-[11px] uppercase text-zinc-600">{bulkMsg}</span>}
+        </div>
+      )}
+
       {/* Table */}
       <div className="border border-zinc-200 bg-white overflow-x-auto">
         {loading ? (
@@ -353,6 +460,15 @@ export default function AdminGamesPage() {
           <table className="w-full text-left font-mono text-xs border-collapse">
             <thead>
               <tr className="bg-[#24130a] text-[#e2b17b] uppercase border-b-2 border-[#8c5828]">
+                <th className="p-3 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={filteredGames.length > 0 && filteredGames.every((g) => selected.has(g.id))}
+                    onChange={toggleSelectFiltered}
+                    className="h-4 w-4 accent-amber-700 cursor-pointer"
+                    aria-label="Seleccionar visibles"
+                  />
+                </th>
                 <th className="p-3 w-16 text-center">Img</th>
                 <th className="p-3">Título / Categoría</th>
                 <th className="p-3 text-center">Jugadores</th>
@@ -365,6 +481,15 @@ export default function AdminGamesPage() {
             <tbody className="divide-y divide-zinc-200">
               {filteredGames.map((game) => (
                 <tr key={game.id} className="hover:bg-amber-50/70 transition">
+                  <td className="p-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(game.id)}
+                      onChange={() => toggleSelect(game.id)}
+                      className="h-4 w-4 accent-amber-700 cursor-pointer"
+                      aria-label={`Seleccionar ${game.name}`}
+                    />
+                  </td>
                   <td className="p-3 text-center">
                     <div className="relative w-10 h-10 border border-zinc-300 bg-zinc-100 overflow-hidden mx-auto">
                       {game.image ? (
