@@ -390,6 +390,31 @@ export default function AdminGamesPage() {
                       <span className="text-[10px] text-zinc-500 border border-zinc-200 px-1.5 py-0.5 bg-zinc-100 uppercase inline-block">
                         {game.category}
                       </span>
+                      {!game.image && (
+                        <span className="text-[10px] text-red-800 border border-red-300 px-1.5 py-0.5 bg-red-50 uppercase inline-block font-semibold">
+                          Sin imagen
+                        </span>
+                      )}
+                      {!game.image2 && (
+                        <span className="text-[10px] text-red-800 border border-red-300 px-1.5 py-0.5 bg-red-50 uppercase inline-block font-semibold">
+                          Sin imagen 2
+                        </span>
+                      )}
+                      {!game.qrManual && (
+                        <span className="text-[10px] text-red-800 border border-red-300 px-1.5 py-0.5 bg-red-50 uppercase inline-block font-semibold">
+                          Sin QR manual
+                        </span>
+                      )}
+                      {!game.qrVideo && (
+                        <span className="text-[10px] text-red-800 border border-red-300 px-1.5 py-0.5 bg-red-50 uppercase inline-block font-semibold">
+                          Sin QR video
+                        </span>
+                      )}
+                      {!game.components && (
+                        <span className="text-[10px] text-red-800 border border-red-300 px-1.5 py-0.5 bg-red-50 uppercase inline-block font-semibold">
+                          Sin componentes
+                        </span>
+                      )}
                       {game.hasExpansions && (
                         <span className="text-[10px] text-amber-800 border border-amber-300 px-1.5 py-0.5 bg-amber-50 uppercase inline-flex items-center gap-1 font-semibold">
                           <Puzzle className="w-2.5 h-2.5 text-amber-700" />

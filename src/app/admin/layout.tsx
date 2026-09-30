@@ -21,6 +21,7 @@ import {
   Library,
   ClipboardList,
   CalendarDays,
+  FolderX,
 } from "lucide-react";
 import { useState } from "react";
 import { ASSETS } from "@/lib/assets";
@@ -53,6 +54,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/games", label: "Juegos", icon: Dices },
       { href: "/admin/expansions", label: "Expansiones", icon: Puzzle },
       { href: "/admin/components", label: "Componentes & Remito", icon: Layers },
+      { href: "/admin/storage", label: "Limpieza", icon: FolderX },
     ],
   },
   {
