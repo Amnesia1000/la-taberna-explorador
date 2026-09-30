@@ -165,13 +165,13 @@ export default function AdminCajaPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
-        <div>
-          <label className="block text-xs font-mono uppercase font-bold text-zinc-600 mb-1">Mes</label>
+        <div className="border border-zinc-200 border-t-4 border-t-[#b45309] bg-white p-4 shadow-sm">
+          <label className="block text-xs font-mono uppercase text-zinc-500 mb-1">Mes</label>
           <input
             type="month"
             value={month}
             onChange={(e) => e.target.value && setMonth(e.target.value)}
-            className="wire-input text-xs w-full"
+            className="wire-input text-xs w-full border-0 p-0 font-mono text-2xl font-bold text-zinc-900 focus:ring-0"
           />
         </div>
         <div className="border border-zinc-200 border-t-4 border-t-emerald-600 bg-white p-4 shadow-sm">

@@ -29,7 +29,7 @@ function readUrlState() {
 
 function CatalogSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" aria-hidden="true">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6" aria-hidden="true">
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
@@ -385,7 +385,7 @@ export default function CatalogPage() {
         ) : (
           <>
             <h2 className="sr-only">Juegos disponibles</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
               {games.map((game) => (
                 <GameCard
                   key={game.id}
