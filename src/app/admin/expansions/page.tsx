@@ -7,6 +7,7 @@ import {
   getEligibleGames,
   saveExpansion,
   deleteExpansion,
+  updateExpansionsBulk,
 } from "@/lib/actions/expansions";
 import { ExpansionWithComponents } from "@/types";
 import {
@@ -41,6 +42,10 @@ export default function AdminExpansionsPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedGameFilter, setSelectedGameFilter] = useState<string>("TODOS");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulk, setBulk] = useState({ price: "", stock: "" });
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkMsg, setBulkMsg] = useState("");
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -96,6 +101,7 @@ export default function AdminExpansionsPage() {
     if (gamesRes.success && gamesRes.data) {
       setEligibleGames(gamesRes.data as unknown as EligibleGame[]);
     }
+    setSelected(new Set());
     setLoading(false);
   };
 
@@ -281,6 +287,46 @@ export default function AdminExpansionsPage() {
     setSaving(false);
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectFiltered = () => {
+    setSelected((prev) => {
+      const ids = filteredExpansions.map((e) => e.id);
+      const allIn = ids.length > 0 && ids.every((id) => prev.has(id));
+      if (allIn) {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      }
+      return new Set([...prev, ...ids]);
+    });
+  };
+
+  const applyBulk = async () => {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    setBulkMsg("");
+    const res = await updateExpansionsBulk([...selected], {
+      price: bulk.price.trim() === "" ? undefined : parseFloat(bulk.price) || 0,
+      stock: bulk.stock.trim() === "" ? undefined : Math.max(0, parseInt(bulk.stock) || 0),
+    });
+    setBulkBusy(false);
+    if (res.success) {
+      setBulk({ price: "", stock: "" });
+      setBulkMsg(`Actualizadas: ${res.count}`);
+      await loadData();
+    } else {
+      setBulkMsg(res.error || "Error al actualizar.");
+    }
+  };
+
   const filteredExpansions = expansions
     .filter((exp) => {
       if (selectedGameFilter !== "TODOS" && exp.gameId !== selectedGameFilter) return false;
@@ -381,6 +427,56 @@ export default function AdminExpansionsPage() {
         </div>
       </div>
 
+      {/* Bulk edit bar */}
+      {selected.size > 0 && (
+        <div className="border-2 border-amber-600 bg-amber-50 p-3 flex flex-col lg:flex-row lg:items-end gap-3 font-mono text-xs">
+          <span className="font-bold uppercase text-zinc-900 whitespace-nowrap">
+            {selected.size} seleccionada(s)
+          </span>
+          <div className="flex flex-wrap items-end gap-3 flex-1">
+            <div>
+              <label className="block text-[10px] uppercase text-zinc-500 mb-1">Tarifa $</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={bulk.price}
+                onChange={(e) => setBulk({ ...bulk, price: e.target.value })}
+                placeholder="—"
+                className="wire-input text-xs w-28"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase text-zinc-500 mb-1">Stock</label>
+              <input
+                type="number"
+                min="0"
+                value={bulk.stock}
+                onChange={(e) => setBulk({ ...bulk, stock: e.target.value })}
+                placeholder="—"
+                className="wire-input text-xs w-24"
+              />
+            </div>
+            <button
+              type="button"
+              disabled={bulkBusy}
+              onClick={applyBulk}
+              className="px-4 h-8 bg-zinc-900 hover:bg-zinc-800 text-white uppercase tracking-wider transition disabled:opacity-50"
+            >
+              {bulkBusy ? "Aplicando…" : "Aplicar"}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSelected(new Set()); setBulkMsg(""); }}
+              className="px-4 h-8 bg-white hover:bg-zinc-100 border border-zinc-300 uppercase tracking-wider transition"
+            >
+              Limpiar
+            </button>
+          </div>
+          {bulkMsg && <span className="text-[11px] uppercase text-zinc-600">{bulkMsg}</span>}
+        </div>
+      )}
+
       {/* Table */}
       <div className="border border-zinc-200 bg-white overflow-x-auto shadow-sm">
         {loading ? (
@@ -408,6 +504,15 @@ export default function AdminExpansionsPage() {
           <table className="w-full text-left font-mono text-xs border-collapse">
             <thead>
               <tr className="bg-[#24130a] text-[#e2b17b] uppercase border-b-2 border-[#8c5828]">
+                <th className="p-3 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={filteredExpansions.length > 0 && filteredExpansions.every((e) => selected.has(e.id))}
+                    onChange={toggleSelectFiltered}
+                    className="h-4 w-4 accent-amber-700 cursor-pointer"
+                    aria-label="Seleccionar visibles"
+                  />
+                </th>
                 <th className="p-3 w-16 text-center">Img</th>
                 <th className="p-3">Expansión / Juego Base</th>
                 <th className="p-3 text-center">Jugadores</th>
@@ -420,6 +525,15 @@ export default function AdminExpansionsPage() {
             <tbody className="divide-y divide-zinc-200">
               {filteredExpansions.map((exp) => (
                 <tr key={exp.id} className="hover:bg-amber-50/70 transition">
+                  <td className="p-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(exp.id)}
+                      onChange={() => toggleSelect(exp.id)}
+                      className="h-4 w-4 accent-amber-700 cursor-pointer"
+                      aria-label={`Seleccionar ${exp.name}`}
+                    />
+                  </td>
                   <td className="p-3 text-center">
                     <div className="relative w-10 h-10 border border-zinc-300 bg-zinc-100 overflow-hidden mx-auto">
                       {exp.image ? (

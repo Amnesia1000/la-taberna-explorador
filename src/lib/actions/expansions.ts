@@ -285,3 +285,23 @@ export async function deleteExpansion(id: string) {
     return { success: false, error: error?.message || "Error al eliminar la expansión" };
   }
 }
+
+/** Edición masiva: tarifa y/o stock para varias expansiones. */
+export async function updateExpansionsBulk(ids: string[], data: { price?: number; stock?: number }) {
+  try {
+    if (ids.length === 0) return { success: false, error: "Sin expansiones seleccionadas" };
+    const payload: any = {};
+    if (data.price !== undefined && data.price >= 0) payload.price = data.price;
+    if (data.stock !== undefined && data.stock >= 0) payload.stock = Math.floor(data.stock);
+    if (Object.keys(payload).length === 0) {
+      return { success: false, error: "Completá al menos un campo" };
+    }
+    const res = await (prisma as any).expansion.updateMany({ where: { id: { in: ids } }, data: payload });
+    revalidatePath("/admin/expansions");
+    revalidatePath("/admin/games");
+    return { success: true, count: res.count };
+  } catch (error: any) {
+    console.error("Error en edición masiva:", error);
+    return { success: false, error: "Error al actualizar" };
+  }
+}
