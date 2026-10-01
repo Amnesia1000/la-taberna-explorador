@@ -22,6 +22,8 @@ import {
   Dices,
   AlertTriangle,
   Puzzle,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 export default function AdminGamesPage() {
@@ -210,6 +212,13 @@ export default function AdminGamesPage() {
     setSaving(true);
     setErrorMessage("");
 
+    // Validación manual (el form usa noValidate para no bloquear montos no redondos)
+    if (!formData.name.trim() || !formData.description.trim() || !formData.category.trim()) {
+      setErrorMessage("Completá nombre, descripción y categoría.");
+      setSaving(false);
+      return;
+    }
+
     const data = new FormData();
     data.append("name", formData.name);
     data.append("description", formData.description);
@@ -313,6 +322,18 @@ export default function AdminGamesPage() {
     }
   };
 
+  const [sortField, setSortField] = useState<"name" | "players" | "duration" | "price">("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const toggleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+  };
+
   const filteredGames = games
     .filter((g) => {
       if (selectedCategory !== "TODOS" && g.category !== selectedCategory) return false;
@@ -325,7 +346,23 @@ export default function AdminGamesPage() {
       }
       return true;
     })
-    .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+    .sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "players":
+          cmp = a.minPlayers - b.minPlayers || a.maxPlayers - b.maxPlayers;
+          break;
+        case "duration":
+          cmp = a.playtime - b.playtime;
+          break;
+        case "price":
+          cmp = a.price - b.price;
+          break;
+        default:
+          cmp = a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
 
   return (
     <div className="space-y-6">
@@ -470,10 +507,26 @@ export default function AdminGamesPage() {
                   />
                 </th>
                 <th className="p-3 w-16 text-center">Img</th>
-                <th className="p-3">Título / Categoría</th>
-                <th className="p-3 text-center">Jugadores</th>
-                <th className="p-3 text-center">Duración</th>
-                <th className="p-3 text-right">Tarifa</th>
+                <th className="p-3">
+                  <button type="button" onClick={() => toggleSort("name")} className="inline-flex items-center gap-1 hover:text-white uppercase">
+                    Título / Categoría {sortField === "name" && (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)}
+                  </button>
+                </th>
+                <th className="p-3 text-center">
+                  <button type="button" onClick={() => toggleSort("players")} className="inline-flex items-center gap-1 hover:text-white uppercase mx-auto">
+                    Jugadores {sortField === "players" && (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)}
+                  </button>
+                </th>
+                <th className="p-3 text-center">
+                  <button type="button" onClick={() => toggleSort("duration")} className="inline-flex items-center gap-1 hover:text-white uppercase mx-auto">
+                    Duración {sortField === "duration" && (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)}
+                  </button>
+                </th>
+                <th className="p-3 text-right">
+                  <button type="button" onClick={() => toggleSort("price")} className="inline-flex items-center gap-1 hover:text-white uppercase ml-auto">
+                    Tarifa {sortField === "price" && (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)}
+                  </button>
+                </th>
                 <th className="p-3 text-center">Componentes</th>
                 <th className="p-3 text-right">Acciones</th>
               </tr>
@@ -623,7 +676,7 @@ export default function AdminGamesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-4 overflow-y-auto space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="p-4 overflow-y-auto space-y-4">
               {errorMessage && (
                 <div className="border border-red-300 bg-red-50 p-3 text-xs text-red-800 font-mono flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
